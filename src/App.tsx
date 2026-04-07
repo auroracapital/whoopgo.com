@@ -418,7 +418,7 @@ function FeaturesSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-5xl md:text-7xl font-black mb-6 leading-[0.95] tracking-tighter"
+            className="text-5xl md:text-7xl font-black mb-6 leading-tight tracking-tighter"
           >
             <span className="block">Your Perfect</span>
             <span className="block text-gradient-orange">Travel Companion</span>
@@ -557,7 +557,7 @@ function PricingSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-5xl md:text-7xl font-black mb-6 leading-[0.95] tracking-tighter"
+            className="text-5xl md:text-7xl font-black mb-6 leading-tight tracking-tighter"
           >
             <span className="block">Simple,</span>
             <span className="block text-gradient-blue">Transparent Pricing</span>
