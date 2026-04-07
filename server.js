@@ -14,7 +14,13 @@ app.use(express.json());
 // Serve static Vite build
 app.use(express.static(join(__dirname, "dist")));
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const apiKey = process.env.ANTHROPIC_API_KEY;
+if (!apiKey) {
+  console.warn("WARNING: ANTHROPIC_API_KEY not set — chat will fail");
+} else {
+  console.log("Anthropic API key loaded (" + apiKey.slice(0, 8) + "...)");
+}
+const client = new Anthropic({ apiKey: apiKey || "" });
 
 const SYSTEM_PROMPT = `You are the WhoopGO! eSIM assistant — a friendly, knowledgeable travel connectivity advisor.
 
