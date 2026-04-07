@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Sparkles } from "lucide-react";
+import Markdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -148,7 +149,13 @@ export function EsimFinder() {
                             </span>
                           </div>
                         )}
-                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                        {message.type === "ai" ? (
+                          <div className="text-sm whitespace-pre-wrap prose prose-sm dark:prose-invert prose-p:m-0 prose-p:leading-relaxed prose-strong:text-[#E67E3C] prose-ul:my-1 prose-li:my-0 max-w-none">
+                            <Markdown>{message.content}</Markdown>
+                          </div>
+                        ) : (
+                          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                        )}
                       </div>
                     </motion.div>
                   ))}
