@@ -325,18 +325,16 @@ function HeroSection() {
             </motion.div>
 
             <motion.div custom={1} variants={fadeUpVariants} initial="hidden" animate="visible">
-              <h1 className="text-5xl sm:text-7xl md:text-[7rem] font-black mb-6 md:mb-8 tracking-tighter leading-[0.9]">
-                <span className="block">
-                  <span className="bg-clip-text text-transparent bg-gradient-to-br from-gray-900 via-gray-800 to-gray-600 dark:from-white dark:via-white/90 dark:to-white/70">
-                    whoop
-                  </span>
-                  <span className="text-gradient-blue">GO</span>
-                  <span className="text-gradient-orange">!</span>
-                </span>
-                <span className="block text-base sm:text-xl md:text-2xl font-medium mt-4 text-gray-500 dark:text-white/40 tracking-normal">
+              <div className="mb-6 md:mb-8">
+                <img
+                  src="/logo-trimmed.png"
+                  alt="WhoopGO! — Data for every destination"
+                  className="h-20 sm:h-28 md:h-36 w-auto mx-auto lg:mx-0"
+                />
+                <p className="text-base sm:text-xl md:text-2xl font-medium mt-4 text-gray-500 dark:text-white/40 tracking-normal text-center lg:text-left">
                   Stay Connected, Anywhere
-                </span>
-              </h1>
+                </p>
+              </div>
             </motion.div>
 
             <motion.div custom={2} variants={fadeUpVariants} initial="hidden" animate="visible">
