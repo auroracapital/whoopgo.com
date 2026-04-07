@@ -125,7 +125,7 @@ function ShimmerButton({ children, className, ...props }: React.ComponentProps<t
 // ─── Logo ────────────────────────────────────────────────────────────────────
 function WhoopGoLogo({ className = "", size = "default" }: { className?: string; size?: "default" | "small" }) {
   const h = size === "small" ? "h-8 md:h-10" : "h-12 md:h-16";
-  const src = size === "small" ? "/logo-nav.png" : "/logo-trimmed.png";
+  const src = size === "small" ? "/logo-nav.webp" : "/logo-trimmed.webp";
   return (
     <img
       src={src}
@@ -191,7 +191,7 @@ function Navbar({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () => v
 
         <div className="md:hidden flex items-center gap-2">
           <ThemeToggle isDark={isDark} toggle={toggleTheme} />
-          <button className="p-2" onClick={() => setMobileOpen(!mobileOpen)}>
+          <button className="p-2" onClick={() => setMobileOpen(!mobileOpen)} aria-label={mobileOpen ? "Close menu" : "Open menu"}>
             {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
@@ -319,7 +319,7 @@ function HeroSection() {
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                 className="w-2 h-2 rounded-full bg-[#E67E3C]"
               />
-              <span className="text-sm text-gray-700 dark:text-white/60 tracking-wide font-medium">
+              <span className="text-sm text-gray-700 dark:text-white/80 tracking-wide font-medium">
                 Data for Every Destination
               </span>
             </motion.div>
@@ -327,20 +327,20 @@ function HeroSection() {
             <motion.div custom={1} variants={fadeUpVariants} initial="hidden" animate="visible">
               <div className="mb-6 md:mb-8">
                 <img
-                  src="/logo-trimmed.png"
+                  src="/logo-trimmed.webp"
                   alt="WhoopGO! — Data for every destination"
                   className="h-20 sm:h-28 md:h-36 w-auto mx-auto lg:mx-0"
                 />
-                <p className="text-base sm:text-xl md:text-2xl font-medium mt-4 text-gray-500 dark:text-white/40 tracking-normal text-center lg:text-left">
+                <p className="text-base sm:text-xl md:text-2xl font-medium mt-4 text-gray-600 dark:text-white/70 tracking-normal text-center lg:text-left">
                   Stay Connected, Anywhere
                 </p>
               </div>
             </motion.div>
 
             <motion.div custom={2} variants={fadeUpVariants} initial="hidden" animate="visible">
-              <p className="text-lg sm:text-xl md:text-2xl text-gray-500 dark:text-white/40 mb-10 leading-relaxed max-w-2xl mx-auto lg:mx-0 font-light">
+              <p className="text-lg sm:text-xl md:text-2xl text-gray-600 dark:text-white/70 mb-10 leading-relaxed max-w-2xl mx-auto lg:mx-0 font-light">
                 Instant eSIM activation for travelers worldwide.
-                <span className="block mt-2 text-base sm:text-lg text-gray-400 dark:text-white/30">
+                <span className="block mt-2 text-base sm:text-lg text-gray-500 dark:text-white/50">
                   No roaming fees &bull; No physical SIM &bull; Just seamless connectivity
                 </span>
               </p>
@@ -739,10 +739,11 @@ function TestimonialsSection() {
           </div>
 
           <div className="flex justify-center gap-2 mt-8">
-            {testimonials.map((_, index) => (
+            {testimonials.map((t, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}
+                aria-label={`View testimonial from ${t.name}`}
                 className={cn(
                   "h-2 rounded-full transition-all duration-300",
                   index === currentIndex ? "bg-[#E67E3C] w-8" : "bg-muted hover:bg-muted-foreground/30 w-2"
@@ -944,7 +945,7 @@ function Footer() {
             { title: "Legal", links: [{ label: "Privacy", href: "#" }, { label: "Terms", href: "#" }, { label: "Refund Policy", href: "#" }] },
           ].map((group) => (
             <div key={group.title}>
-              <h4 className="font-bold mb-4 text-sm tracking-wider uppercase text-foreground/80">{group.title}</h4>
+              <h3 className="font-bold mb-4 text-sm tracking-wider uppercase text-foreground/80">{group.title}</h3>
               <ul className="space-y-3 text-sm">
                 {group.links.map((link) => (
                   <li key={link.label}>

@@ -325,6 +325,7 @@ export function EsimFinder() {
                       onClick={handleSend}
                       disabled={!input.trim() || isTyping}
                       className="bg-[#E67E3C] hover:bg-[#D86E2C] text-white px-6"
+                      aria-label="Send message"
                     >
                       <Send className="w-4 h-4" />
                     </Button>
