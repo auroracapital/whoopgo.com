@@ -114,6 +114,10 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "cv11", "ss01";
@@ -132,11 +136,11 @@
 
 @layer utilities {
   .glass {
-    @apply backdrop-blur-xl bg-white/[0.02] border border-white/[0.05];
+    @apply backdrop-blur-2xl bg-white/[0.04] border border-white/[0.06];
   }
 
   .glass-hover {
-    @apply hover:bg-white/[0.05] transition-all duration-300;
+    @apply hover:bg-white/[0.08] transition-all duration-500;
   }
 
   .glow-orange {
