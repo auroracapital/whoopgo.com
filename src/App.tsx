@@ -124,11 +124,12 @@ function ShimmerButton({ children, className, ...props }: React.ComponentProps<t
 
 // ─── Logo ────────────────────────────────────────────────────────────────────
 function WhoopGoLogo({ className = "", size = "default" }: { className?: string; size?: "default" | "small" }) {
-  const h = size === "small" ? "h-8" : "h-10 md:h-12";
+  const h = size === "small" ? "h-8 md:h-10" : "h-12 md:h-16";
+  const src = size === "small" ? "/logo-nav.png" : "/logo-trimmed.png";
   return (
     <img
-      src="/logo.svg"
-      alt="WhoopGO!"
+      src={src}
+      alt="WhoopGO! — Data for every destination"
       className={cn("w-auto select-none", h, className)}
     />
   );
@@ -982,6 +983,10 @@ function Footer() {
 // ─── Main App ────────────────────────────────────────────────────────────────
 export default function App() {
   const { isDark, toggle } = useTheme();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
     <div className="min-h-screen w-full scroll-smooth">
