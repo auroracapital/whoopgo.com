@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Wifi,
   Globe,
@@ -16,8 +16,10 @@ import {
   Sparkles,
   Menu,
   X,
+  Sun,
+  Moon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,20 +29,78 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { EsimFinder } from "@/components/EsimFinder";
 import { GlobeSatellites } from "@/components/ui/globe-satellites";
 
+// ─── Theme Hook ──────────────────────────────────────────────────────────────
+function useTheme() {
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof window === "undefined") return true;
+    const stored = localStorage.getItem("whoopgo-theme");
+    if (stored) return stored === "dark";
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isDark) {
+      root.classList.add("dark");
+    } else {
+      root.classList.remove("dark");
+    }
+    localStorage.setItem("whoopgo-theme", isDark ? "dark" : "light");
+  }, [isDark]);
+
+  const toggle = useCallback(() => setIsDark((d) => !d), []);
+  return { isDark, toggle };
+}
+
+// ─── Theme Toggle ────────────────────────────────────────────────────────────
+function ThemeToggle({ isDark, toggle }: { isDark: boolean; toggle: () => void }) {
+  return (
+    <button
+      onClick={toggle}
+      className="relative w-10 h-10 rounded-full flex items-center justify-center bg-muted hover:bg-muted/80 border border-border/50 transition-all duration-300 hover:scale-105"
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+    >
+      <AnimatePresence mode="wait" initial={false}>
+        {isDark ? (
+          <motion.div
+            key="moon"
+            initial={{ rotate: -90, scale: 0, opacity: 0 }}
+            animate={{ rotate: 0, scale: 1, opacity: 1 }}
+            exit={{ rotate: 90, scale: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Moon className="w-4 h-4 text-[#5B7FC7]" />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="sun"
+            initial={{ rotate: 90, scale: 0, opacity: 0 }}
+            animate={{ rotate: 0, scale: 1, opacity: 1 }}
+            exit={{ rotate: -90, scale: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Sun className="w-4 h-4 text-[#E67E3C]" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </button>
+  );
+}
+
 // ─── Logo ────────────────────────────────────────────────────────────────────
 function WhoopGoLogo({ className = "", size = "default" }: { className?: string; size?: "default" | "small" }) {
-  const textSize = size === "small" ? "text-xl" : "text-2xl md:text-3xl";
+  const h = size === "small" ? "h-8" : "h-10 md:h-12";
   return (
-    <span className={cn("font-extrabold tracking-tight select-none", textSize, className)}>
-      <span className="text-[#E67E3C]">whoop</span>
-      <span className="text-[#5B7FC7]">GO</span>
-      <span className="text-[#E67E3C]">!</span>
-    </span>
+    <img
+      src="/logo.svg"
+      alt="WhoopGO!"
+      className={cn("w-auto select-none", h, className)}
+    />
   );
 }
 
 // ─── Navbar ──────────────────────────────────────────────────────────────────
-function Navbar() {
+function Navbar({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () => void }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -80,17 +140,21 @@ function Navbar() {
               {link.label}
             </a>
           ))}
-          <Button className="bg-[#E67E3C] hover:bg-[#D86E2C] text-white">
+          <ThemeToggle isDark={isDark} toggle={toggleTheme} />
+          <Button className="bg-[#E67E3C] hover:bg-[#D86E2C] text-white shadow-lg shadow-[#E67E3C]/25 hover:shadow-[#E67E3C]/40 transition-all duration-300">
             Get Started
           </Button>
         </div>
 
-        <button
-          className="md:hidden p-2"
-          onClick={() => setMobileOpen(!mobileOpen)}
-        >
-          {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+        <div className="md:hidden flex items-center gap-2">
+          <ThemeToggle isDark={isDark} toggle={toggleTheme} />
+          <button
+            className="p-2"
+            onClick={() => setMobileOpen(!mobileOpen)}
+          >
+            {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
       </div>
 
       {mobileOpen && (
@@ -109,7 +173,7 @@ function Navbar() {
               {link.label}
             </a>
           ))}
-          <Button className="w-full bg-[#E67E3C] hover:bg-[#D86E2C] text-white">
+          <Button className="w-full bg-[#E67E3C] hover:bg-[#D86E2C] text-white shadow-lg shadow-[#E67E3C]/25">
             Get Started
           </Button>
         </motion.div>
@@ -673,9 +737,11 @@ function Footer() {
 
 // ─── Main App ────────────────────────────────────────────────────────────────
 export default function App() {
+  const { isDark, toggle } = useTheme();
+
   return (
-    <div className="min-h-screen w-full dark">
-      <Navbar />
+    <div className="min-h-screen w-full">
+      <Navbar isDark={isDark} toggleTheme={toggle} />
       <HeroSection />
       <FeaturesSection />
       <HowItWorksSection />
