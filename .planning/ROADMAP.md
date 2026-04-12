@@ -6,7 +6,7 @@
 
 ---
 
-## Phase 1 — Foundation & Quality
+## Phase 1: Foundation & Quality
 
 **Goal:** Harden the existing codebase before building on it — proper CI, type safety, and a project README that reflects reality.
 
@@ -23,7 +23,7 @@
 
 ---
 
-## Phase 2 — Checkout & Payments
+## Phase 2: Checkout & Payments
 
 **Goal:** Wire up Stripe so users can actually buy a plan. "Get Started" buttons open a real checkout flow.
 
@@ -41,7 +41,7 @@
 
 ---
 
-## Phase 3 — eSIM Provisioning & Delivery
+## Phase 3: eSIM Provisioning & Delivery
 
 **Goal:** Connect a real eSIM wholesale API (e.g. Airalo, eSIM Access, BSCS) so purchased plans trigger actual QR code generation and email delivery.
 
@@ -58,7 +58,7 @@
 
 ---
 
-## Phase 4 — User Accounts & Order Management
+## Phase 4: User Accounts & Order Management
 
 **Goal:** Let users log in to view their active eSIMs, track data usage, and manage renewals.
 
@@ -75,7 +75,7 @@
 
 ---
 
-## Phase 5 — Growth & Retention
+## Phase 5: Growth & Retention
 
 **Goal:** Close the loop on acquisition and retention — analytics, SEO, referral mechanics, and email capture.
 
