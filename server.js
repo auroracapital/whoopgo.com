@@ -215,17 +215,62 @@ app.post("/api/webhooks/stripe", async (req, res) => {
   res.json({ received: true });
 });
 
+// ─── eSIM Provider Abstraction ────────────────────────────────────────────────
+
+/**
+ * Select which eSIM provider to use for a given order.
+ *
+ * Strategy (in priority order):
+ *  1. Env override: ESIM_PROVIDER=airalo|esimmcp forces a specific provider.
+ *  2. Plan-level mapping: ESIMMCP_PLAN_IDS env var (comma-separated plan IDs)
+ *     routes those plans to eSIMVault; everything else goes to Airalo.
+ *  3. Fallback: If eSIMVault credentials are present but Airalo credentials
+ *     are not, use eSIMVault (and vice versa).
+ *  4. Default: Airalo.
+ *
+ * @param {object} order
+ * @returns {"airalo"|"esimmcp"}
+ */
+function selectProvider(order) {
+  const forced = process.env.ESIM_PROVIDER?.toLowerCase();
+  if (forced === "airalo" || forced === "esimmcp") return forced;
+
+  const esimmcpPlanIds = (process.env.ESIMMCP_PLAN_IDS ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  if (esimmcpPlanIds.length > 0 && esimmcpPlanIds.includes(order.planId)) {
+    return "esimmcp";
+  }
+
+  const hasAiralo  = !!process.env.AIRALO_CLIENT_ID;
+  const hasEsimmcp = !!process.env.ESIMMCP_API_URL && !!process.env.ESIMMCP_API_TOKEN;
+
+  if (hasEsimmcp && !hasAiralo) return "esimmcp";
+  return "airalo";
+}
+
 // ─── eSIM Provisioning ────────────────────────────────────────────────────────
 async function provisionEsim(sessionId, order) {
   try {
-    // Phase 3: replaced with real Airalo API call
-    const qrData = await callAiraloApi(order);
+    const provider = selectProvider(order);
+    console.log(`Provisioning via ${provider}: ${sessionId}`);
+
+    let qrData;
+    if (provider === "esimmcp") {
+      qrData = await callEsimmcpApi(order);
+    } else {
+      qrData = await callAiraloApi(order);
+    }
 
     orders.set(sessionId, {
       ...order,
       status: "ready",
+      provider,
       qrCode: qrData?.qrCode ?? null,
       iccid: qrData?.iccid ?? null,
+      activationCode: qrData?.activationCode ?? null,
     });
 
     // Send email with QR code
@@ -237,10 +282,11 @@ async function provisionEsim(sessionId, order) {
         country: order.country,
         qrCode: qrData?.qrCode,
         iccid: qrData?.iccid,
+        activationCode: qrData?.activationCode,
       });
     }
 
-    console.log(`eSIM provisioned: ${sessionId}`);
+    console.log(`eSIM provisioned via ${provider}: ${sessionId}`);
   } catch (err) {
     console.error(`eSIM provisioning failed for ${sessionId}:`, err);
     orders.set(sessionId, {
@@ -378,8 +424,199 @@ async function callAiraloApi(order) {
   };
 }
 
+// ─── eSIMVault (esimmcp.com) API Integration ──────────────────────────────────
+//
+// eSIMVault is a B2B OCS (Online Charging System) platform.
+// It manages a pre-provisioned inventory of eSIMs ("subscribers") belonging
+// to your reseller account. To sell an eSIM:
+//   1. Find a free (unassigned) subscriber in your account inventory.
+//   2. Assign a prepaid data package template to that subscriber via
+//      `affectPackageToSubscriber` — this returns the LPA activation code
+//      and QR string.
+//   3. The customer scans the QR to install the eSIM profile on their device.
+//
+// Auth: POST requests carry a JSON body `{ "methodName": { ...params } }`.
+//       Bearer token is sent via Authorization header.
+//       Base URL configured via ESIMMCP_API_URL env var.
+//
+// Required env vars:
+//   ESIMMCP_API_URL    — e.g. https://ocs.esimvault.cloud/api  (no trailing slash)
+//   ESIMMCP_API_TOKEN  — Bearer token issued by your eSIMVault account manager
+//   ESIMMCP_ACCOUNT_ID — Your reseller account ID (integer)
+//
+// Optional env vars:
+//   ESIMMCP_PLAN_IDS   — Comma-separated plan IDs to route to eSIMVault
+//                        (e.g. "eu-5gb-7d,eu-10gb-15d,eu-unlimited-30d")
+//   ESIMMCP_PACKAGE_MAP — JSON mapping plan IDs → eSIMVault package template IDs
+//                        (e.g. '{"eu-5gb-7d":553,"eu-10gb-15d":554}')
+
+/**
+ * Map internal plan IDs to eSIMVault prepaid package template IDs.
+ * These must match the template IDs configured in your eSIMVault account.
+ * Populate via the ESIMMCP_PACKAGE_MAP env var (JSON) or override here.
+ */
+function getEsimmcpPackageMap() {
+  try {
+    const raw = process.env.ESIMMCP_PACKAGE_MAP;
+    if (raw) return JSON.parse(raw);
+  } catch {
+    console.warn("ESIMMCP_PACKAGE_MAP is not valid JSON — falling back to empty map");
+  }
+  // Hardcoded defaults (fill in real template IDs from your eSIMVault dashboard)
+  return {
+    "us-1gb-7d":        null,
+    "us-3gb-15d":       null,
+    "us-5gb-30d":       null,
+    "us-10gb-30d":      null,
+    "eu-5gb-7d":        null,
+    "eu-10gb-15d":      null,
+    "eu-unlimited-30d": null,
+    "apac-5gb-7d":      null,
+    "global-10gb-30d":  null,
+  };
+}
+
+/**
+ * Make a call to the eSIMVault OCS API.
+ * The OCS API uses a JSON-RPC-style envelope: { "methodName": { ...params } }
+ */
+async function esimmcpRequest(methodName, params) {
+  const baseUrl = process.env.ESIMMCP_API_URL;
+  const token   = process.env.ESIMMCP_API_TOKEN;
+
+  if (!baseUrl || !token) throw new Error("eSIMVault credentials not configured (ESIMMCP_API_URL / ESIMMCP_API_TOKEN)");
+
+  const res = await fetch(baseUrl, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({ [methodName]: params }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`eSIMVault API error (${res.status}): ${body}`);
+  }
+
+  const data = await res.json();
+
+  if (data?.status?.code !== 0) {
+    throw new Error(`eSIMVault OCS error (${data?.status?.code}): ${data?.status?.msg}`);
+  }
+
+  return data;
+}
+
+/**
+ * Find a free (unassigned) subscriber ICCID in the configured account.
+ * eSIMVault pre-provisions eSIM profiles into your inventory; we pick one
+ * that has no active packages so we can assign it to the new customer.
+ */
+async function findFreeEsimmcpSubscriber(accountId) {
+  const data = await esimmcpRequest("listSubscriber", { accountId });
+  const subscribers = data?.listSubscriber?.subscriber ?? [];
+
+  for (const sub of subscribers) {
+    if (!sub.iccid) continue;
+
+    try {
+      const pkgData = await esimmcpRequest("listSubscriberPrepaidPackages", { iccid: sub.iccid });
+      const packages = pkgData?.listSubscriberPrepaidPackages?.package ?? [];
+      const activePackages = packages.filter(
+        (p) => p.status === "ACTIVE" || p.status === "PENDING"
+      );
+      if (activePackages.length === 0) return sub.iccid;
+    } catch {
+      // If package check fails for this subscriber, skip it
+    }
+  }
+
+  throw new Error("No free eSIM subscribers available in eSIMVault account");
+}
+
+/**
+ * Generate a QR code image URL from an LPA activation string.
+ * The LPA string format is: LPA:1$smdpServer$activationCode
+ */
+function lpaToQrImageUrl(lpaString) {
+  return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(lpaString)}`;
+}
+
+async function callEsimmcpApi(order) {
+  const baseUrl = process.env.ESIMMCP_API_URL;
+  const token   = process.env.ESIMMCP_API_TOKEN;
+
+  if (!baseUrl || !token) {
+    // No eSIMVault credentials — return a placeholder for dev/test
+    console.warn("eSIMVault not configured — using placeholder QR");
+    const lpaPlaceholder = "LPA:1$smdp.io$WHOOPGO_TEST_ESIM";
+    return {
+      qrCode: lpaToQrImageUrl(lpaPlaceholder),
+      iccid: "TEST_ICCID_" + Math.random().toString(36).slice(2, 10).toUpperCase(),
+      activationCode: lpaPlaceholder,
+      provider: "esimmcp",
+    };
+  }
+
+  const packageMap        = getEsimmcpPackageMap();
+  const packageTemplateId = packageMap[order.planId];
+  const accountId         = parseInt(process.env.ESIMMCP_ACCOUNT_ID ?? "0", 10);
+
+  if (!packageTemplateId) {
+    throw new Error(
+      `No eSIMVault package template mapped for plan: ${order.planId}. ` +
+      `Set ESIMMCP_PACKAGE_MAP env var with a JSON object mapping plan IDs to template IDs.`
+    );
+  }
+
+  if (!accountId) {
+    throw new Error("ESIMMCP_ACCOUNT_ID is required for eSIMVault provisioning");
+  }
+
+  // Find a free subscriber slot in the account inventory
+  const iccid = await findFreeEsimmcpSubscriber(accountId);
+
+  // Assign the package — this activates the eSIM profile and returns QR data
+  const now = new Date();
+  const endDate = new Date(now);
+  // Parse validity from plan duration string (e.g. "7 days", "30 days")
+  const durationDays = parseInt(order.duration ?? "30", 10) || 30;
+  endDate.setDate(endDate.getDate() + durationDays);
+
+  const data = await esimmcpRequest("affectPackageToSubscriber", {
+    packageTemplateId,
+    subscriber: { iccid },
+    activePeriod: {
+      start: now.toISOString().replace("Z", ""),
+      end: endDate.toISOString().replace("Z", ""),
+    },
+  });
+
+  const result = data?.affectPackageToSubscriber;
+
+  if (!result) throw new Error("eSIMVault returned no provisioning data");
+
+  // urlQrCode is the LPA string (LPA:1$smdpServer$activationCode)
+  // We render it as a scannable QR image via qrserver.com
+  const lpaString  = result.urlQrCode ?? `LPA:1$${result.smdpServer}$${result.activationCode}`;
+  const qrImageUrl = lpaToQrImageUrl(lpaString);
+
+  return {
+    qrCode: qrImageUrl,
+    iccid: result.iccid ?? iccid,
+    activationCode: lpaString,
+    smdpServer: result.smdpServer,
+    esimId: result.esimId,
+    subsPackageId: result.subsPackageId,
+    provider: "esimmcp",
+  };
+}
+
 // ─── Email Delivery ───────────────────────────────────────────────────────────
-async function sendEsimEmail(to, { planName, data, duration, country, qrCode, iccid }) {
+async function sendEsimEmail(to, { planName, data, duration, country, qrCode, iccid, activationCode }) {
   const resendKey = process.env.RESEND_API_KEY;
   const from = process.env.EMAIL_FROM ?? "orders@whoopgo.com";
 
@@ -391,6 +628,11 @@ async function sendEsimEmail(to, { planName, data, duration, country, qrCode, ic
   const qrCodeImg = qrCode
     ? `<img src="${qrCode}" alt="eSIM QR Code" width="200" style="margin: 16px auto; display: block;" />`
     : "<p>Your QR code will arrive shortly.</p>";
+
+  // Show LPA string for manual entry if QR scan fails (eSIMVault eSIMs)
+  const lpaSection = activationCode && activationCode.startsWith("LPA:")
+    ? `<p style="font-size: 11px; color: #999; margin-top: 6px; word-break: break-all;">Manual code: ${activationCode}</p>`
+    : "";
 
   const html = `
     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 32px;">
@@ -404,6 +646,7 @@ async function sendEsimEmail(to, { planName, data, duration, country, qrCode, ic
         <h2 style="font-size: 16px; margin-bottom: 12px;">Scan to activate your eSIM</h2>
         ${qrCodeImg}
         ${iccid ? `<p style="font-size: 12px; color: #999; margin-top: 8px;">ICCID: ${iccid}</p>` : ""}
+        ${lpaSection}
       </div>
 
       <h3 style="font-size: 16px; margin-bottom: 12px;">How to activate:</h3>
