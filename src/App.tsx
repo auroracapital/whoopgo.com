@@ -32,6 +32,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { EsimFinder } from "@/components/EsimFinder";
 import { GlobeSatellites } from "@/components/ui/globe-satellites";
+import { CheckoutButton } from "@/components/CheckoutButton";
+import { AuthModal } from "@/components/AuthModal";
+import { useAuth } from "@/lib/auth";
+import { EmailCapture } from "@/components/EmailCapture";
 
 // ─── Theme Hook ──────────────────────────────────────────────────────────────
 function useTheme() {
@@ -139,6 +143,7 @@ function WhoopGoLogo({ className = "", size = "default" }: { className?: string;
 function Navbar({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () => void }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user, signOut } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -184,9 +189,33 @@ function Navbar({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () => v
             </a>
           ))}
           <ThemeToggle isDark={isDark} toggle={toggleTheme} />
-          <ShimmerButton className="rounded-full px-6">
-            Get Started
-          </ShimmerButton>
+          {user ? (
+            <div className="flex items-center gap-3">
+              <a
+                href="/account"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                My eSIMs
+              </a>
+              <button
+                onClick={() => void signOut()}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <AuthModal trigger={
+                <button className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                  Sign In
+                </button>
+              } />
+              <ShimmerButton className="rounded-full px-6" onClick={() => { window.location.href = "#pricing"; }}>
+                Get Started
+              </ShimmerButton>
+            </div>
+          )}
         </div>
 
         <div className="md:hidden flex items-center gap-2">
@@ -219,9 +248,15 @@ function Navbar({ isDark, toggleTheme }: { isDark: boolean; toggleTheme: () => v
                   {link.label}
                 </motion.a>
               ))}
-              <ShimmerButton className="w-full mt-4 rounded-full">
-                Get Started
-              </ShimmerButton>
+              {user ? (
+                <a href="/account" className="block w-full mt-4">
+                  <ShimmerButton className="w-full rounded-full">My eSIMs</ShimmerButton>
+                </a>
+              ) : (
+                <ShimmerButton className="w-full mt-4 rounded-full" onClick={() => { window.location.href = "#pricing"; }}>
+                  Get Started
+                </ShimmerButton>
+              )}
             </div>
           </motion.div>
         )}
@@ -532,9 +567,9 @@ function HowItWorksSection() {
 // ─── Pricing ─────────────────────────────────────────────────────────────────
 function PricingSection() {
   const plans = [
-    { name: "Tourist", price: 9.99, data: "5GB", days: 7, features: ["5GB High-Speed Data", "7 Days Validity", "30+ Countries", "24/7 Support"] },
-    { name: "Traveler", price: 29.99, data: "15GB", days: 15, popular: true, features: ["15GB High-Speed Data", "15 Days Validity", "30+ Countries", "Priority Support", "Hotspot Enabled"] },
-    { name: "Explorer", price: 49.99, data: "Unlimited", days: 30, features: ["Unlimited Data", "30 Days Validity", "30+ Countries", "VIP Support", "Hotspot Enabled", "Free Renewal Discount"] },
+    { id: "eu-5gb-7d", name: "Tourist", price: 9.99, data: "5GB", days: 7, features: ["5GB High-Speed Data", "7 Days Validity", "30+ Countries", "24/7 Support"] },
+    { id: "eu-10gb-15d", name: "Traveler", price: 19.99, data: "10GB", days: 15, popular: true, features: ["10GB High-Speed Data", "15 Days Validity", "30+ Countries", "Priority Support", "Hotspot Enabled"] },
+    { id: "eu-unlimited-30d", name: "Explorer", price: 49.99, data: "Unlimited", days: 30, features: ["Unlimited Data", "30 Days Validity", "30+ Countries", "VIP Support", "Hotspot Enabled", "Free Renewal Discount"] },
   ];
 
   return (
@@ -606,12 +641,21 @@ function PricingSection() {
                     ))}
                   </ul>
                   {plan.popular ? (
-                    <ShimmerButton className="w-full rounded-xl">Get Started</ShimmerButton>
+                    <CheckoutButton
+                      plan={{ id: plan.id, name: plan.name, data: plan.data, duration: `${plan.days} days`, price: Math.round(plan.price * 100), description: plan.features[0] }}
+                      className="w-full rounded-xl bg-[#E67E3C] hover:bg-[#D86E2C] text-white"
+                    >
+                      Get Started — ${plan.price}
+                    </CheckoutButton>
                   ) : (
                     <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                      <Button variant="outline" className="w-full rounded-xl bg-background/50 dark:bg-white/[0.04] hover:bg-background/80 dark:hover:bg-white/[0.08] transition-all duration-300">
-                        Get Started
-                      </Button>
+                      <CheckoutButton
+                        plan={{ id: plan.id, name: plan.name, data: plan.data, duration: `${plan.days} days`, price: Math.round(plan.price * 100), description: plan.features[0] }}
+                        variant="outline"
+                        className="w-full rounded-xl bg-background/50 dark:bg-white/[0.04] hover:bg-background/80 dark:hover:bg-white/[0.08] transition-all duration-300"
+                      >
+                        Get Started — ${plan.price}
+                      </CheckoutButton>
                     </motion.div>
                   )}
                 </CardContent>
@@ -674,7 +718,7 @@ function TestimonialsSection() {
       setCurrentIndex((prev) => (prev + 1) % testimonials.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [testimonials.length]);
 
   return (
     <section className="py-28 bg-background relative overflow-hidden">
@@ -840,6 +884,33 @@ function FAQSection() {
 
 // ─── Contact ─────────────────────────────────────────────────────────────────
 function ContactSection() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [contactError, setContactError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSending(true);
+    setContactError(null);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, message }),
+      });
+      if (!res.ok) throw new Error("Failed to send");
+      setSent(true);
+      setName(""); setEmail(""); setMessage("");
+    } catch {
+      setContactError("Failed to send — please email us directly at support@whoopgo.com");
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
     <section id="contact" className="py-28 bg-background relative overflow-hidden">
       <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#5B7FC7]/[0.04] rounded-full blur-[120px]" />
@@ -893,23 +964,34 @@ function ContactSection() {
             >
               <Card className="bg-background/60 dark:bg-white/[0.04] backdrop-blur-xl border-border/50 dark:border-white/[0.06]">
                 <CardContent className="p-8">
-                  <form className="space-y-5">
+                  {sent ? (
+                    <div className="text-center py-8">
+                      <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4">
+                        <Check className="w-6 h-6 text-green-500" />
+                      </div>
+                      <p className="font-semibold mb-1">Message sent!</p>
+                      <p className="text-sm text-muted-foreground">We'll get back to you within 24 hours.</p>
+                    </div>
+                  ) : (
+                  <form className="space-y-5" onSubmit={(e) => void handleSubmit(e)}>
                     <div>
                       <Label htmlFor="name" className="mb-2">Name</Label>
-                      <Input id="name" placeholder="Your name" className="rounded-xl h-12" />
+                      <Input id="name" placeholder="Your name" className="rounded-xl h-12" value={name} onChange={(e) => setName(e.target.value)} required />
                     </div>
                     <div>
-                      <Label htmlFor="email" className="mb-2">Email</Label>
-                      <Input id="email" type="email" placeholder="your@email.com" className="rounded-xl h-12" />
+                      <Label htmlFor="contact-email" className="mb-2">Email</Label>
+                      <Input id="contact-email" type="email" placeholder="your@email.com" className="rounded-xl h-12" value={email} onChange={(e) => setEmail(e.target.value)} required />
                     </div>
                     <div>
                       <Label htmlFor="message" className="mb-2">Message</Label>
-                      <Textarea id="message" placeholder="How can we help?" rows={5} className="rounded-xl" />
+                      <Textarea id="message" placeholder="How can we help?" rows={5} className="rounded-xl" value={message} onChange={(e) => setMessage(e.target.value)} required />
                     </div>
-                    <ShimmerButton className="w-full rounded-xl h-12 text-base">
-                      Send Message
+                    {contactError && <p className="text-xs text-red-500">{contactError}</p>}
+                    <ShimmerButton type="submit" className="w-full rounded-xl h-12 text-base" disabled={sending}>
+                      {sending ? "Sending..." : "Send Message"}
                     </ShimmerButton>
                   </form>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>
@@ -932,6 +1014,15 @@ function Footer() {
   return (
     <footer className="bg-muted/50 py-16 border-t border-border/50">
       <div className="container mx-auto px-4">
+        {/* Newsletter */}
+        <div className="bg-background/60 dark:bg-white/[0.04] border border-border/50 rounded-2xl p-6 mb-12 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div>
+            <p className="font-bold">Get travel deals &amp; eSIM tips</p>
+            <p className="text-sm text-muted-foreground">No spam — just exclusive discounts and coverage updates.</p>
+          </div>
+          <EmailCapture source="footer" className="w-full md:w-auto md:min-w-[360px]" placeholder="your@email.com" buttonText="Subscribe" />
+        </div>
+
         <div className="grid md:grid-cols-4 gap-10 mb-12">
           <div>
             <WhoopGoLogo size="small" className="mb-4 inline-block" />
@@ -958,7 +1049,7 @@ function Footer() {
         </div>
 
         <div className="border-t border-border/50 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-muted-foreground">&copy; 2024 WhoopGO! All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} WhoopGO! All rights reserved.</p>
           <div className="flex gap-3">
             {socialLinks.map((social, index) => (
               <motion.a

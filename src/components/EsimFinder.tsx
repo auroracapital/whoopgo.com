@@ -64,12 +64,12 @@ export function EsimFinder() {
         }),
       });
 
-      const data = await res.json();
+      const data = (await res.json()) as { content?: string };
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: "ai",
-        content: data.content || "Sorry, I had trouble processing that. Could you try again?",
+        content: data.content ?? "Sorry, I had trouble processing that. Could you try again?",
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMessage]);
@@ -89,7 +89,7 @@ export function EsimFinder() {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      void handleSend();
     }
   };
 
@@ -208,7 +208,7 @@ export function EsimFinder() {
                     disabled={isTyping}
                   />
                   <Button
-                    onClick={handleSend}
+                    onClick={() => void handleSend()}
                     disabled={!input.trim() || isTyping}
                     className="bg-[#E67E3C] hover:bg-[#D86E2C] text-white px-6 rounded-xl"
                     aria-label="Send message"

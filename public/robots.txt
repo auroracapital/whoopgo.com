@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /checkout/success
+Disallow: /checkout/cancel
+Disallow: /api/
+
+Sitemap: https://whoopgo.com/sitemap.xml
