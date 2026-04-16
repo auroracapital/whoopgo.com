@@ -4,8 +4,6 @@ import Anthropic from "@anthropic-ai/sdk";
 import Stripe from "stripe";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
-import { createTransport } from "nodemailer";
-
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3001;
