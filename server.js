@@ -4,7 +4,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import Stripe from "stripe";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
-import { timingSafeEqual } from "crypto";
+import { createHmac, timingSafeEqual } from "crypto";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -306,8 +306,10 @@ app.get("/api/orders/:sessionId", (req, res) => {
 
 /**
  * Admin-only: requires a bearer token matching ADMIN_API_TOKEN.
- * Uses timingSafeEqual to prevent timing attacks. If ADMIN_API_TOKEN is
- * unset, the endpoint is hard-disabled (503) — no silent auth bypass.
+ * Compares HMAC-SHA256 digests (keyed by the expected token) with
+ * timingSafeEqual so length alone cannot short-circuit verification.
+ * If ADMIN_API_TOKEN is unset, the endpoint is hard-disabled (503) —
+ * no silent auth bypass.
  *
  * Phase 4 will replace this with Clerk admin-role verification once the
  * backend is wired to @clerk/backend verifyToken().
@@ -321,13 +323,15 @@ function requireAdmin(req, res, next) {
   const header = req.headers.authorization ?? "";
   const provided = header.startsWith("Bearer ") ? header.slice(7) : "";
 
-  const expectedBuf = Buffer.from(expected, "utf8");
-  const providedBuf = Buffer.from(provided, "utf8");
+  const macKey = Buffer.from(expected, "utf8");
+  const expectedMac = createHmac("sha256", macKey)
+    .update(expected, "utf8")
+    .digest();
+  const providedMac = createHmac("sha256", macKey)
+    .update(provided, "utf8")
+    .digest();
 
-  if (
-    providedBuf.length !== expectedBuf.length ||
-    !timingSafeEqual(providedBuf, expectedBuf)
-  ) {
+  if (!timingSafeEqual(providedMac, expectedMac)) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
