@@ -298,6 +298,20 @@ async function provisionEsim(sessionId, order) {
 }
 
 // ─── Orders API ───────────────────────────────────────────────────────────────
+
+// User-facing: list by userId only. Email must not be used for lookup here — it
+// is not a secret, so an unauthenticated email filter would leak eSIM credentials
+// to anyone who knows the address. (Admin email filter lives on /api/orders.)
+app.get("/api/orders/by-user", (req, res) => {
+  const { userId } = req.query;
+  if (!userId || typeof userId !== "string") {
+    return res.status(400).json({ error: "userId required" });
+  }
+  const all = Array.from(orders.values());
+  const filtered = all.filter((o) => o.userId === userId);
+  res.json(filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+});
+
 app.get("/api/orders/:sessionId", (req, res) => {
   const order = orders.get(req.params.sessionId);
   if (!order) return res.status(404).json({ error: "Order not found" });
@@ -337,22 +351,6 @@ function requireAdmin(req, res, next) {
 
   next();
 }
-
-// User-facing: filter by userId or email — no admin auth required.
-// Session IDs (cs_live_*) used by :sessionId route are unguessable; userId/email
-// filtering returns only the caller's own orders. Phase 4 will gate this on
-// Clerk verifyToken() once the backend is wired.
-app.get("/api/orders/by-user", (req, res) => {
-  const { userId, email } = req.query;
-  if (!userId && !email) {
-    return res.status(400).json({ error: "userId or email required" });
-  }
-  const all = Array.from(orders.values());
-  const filtered = email
-    ? all.filter((o) => o.email === email)
-    : all.filter((o) => o.userId === userId);
-  res.json(filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
-});
 
 // Admin-only: full unfiltered order list.
 app.get("/api/orders", requireAdmin, (req, res) => {
