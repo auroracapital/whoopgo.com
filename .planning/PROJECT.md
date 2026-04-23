@@ -23,28 +23,24 @@ Make mobile data abroad effortless. Travelers scan a QR code and get connected i
 
 ## Current State
 
-### What Works
-- Full marketing landing page: Hero, Features (bento grid), How It Works, Pricing, Social Proof, Testimonials, FAQ, Contact, Footer
-- Animated globe with satellites in hero
-- Dark/light mode with localStorage persistence
-- Responsive mobile nav with hamburger menu
-- Scroll progress bar
-- AI-powered eSIM Finder (chat widget) backed by Claude Haiku via `/api/chat`
-- Complete plan catalogue hard-coded in system prompt: country, regional, and global plans
-- Static pricing section (Tourist $9.99 / Traveler $29.99 / Explorer $49.99)
-- Deployed to Render
+**Shipped:** v1.0 — Launch-Ready eSIM Storefront (2026-04-16). See `.planning/MILESTONES.md`.
 
-### What's Missing
-- No real purchase/checkout flow — "Get Started" buttons are inert
-- No payment integration (Stripe or otherwise)
-- No user accounts / auth
-- No real eSIM provisioning API integration (plans are fictional/static)
-- No mobile app (referenced in FAQ + hero CTA but doesn't exist)
-- No email delivery for QR codes
-- No analytics or tracking
-- No tests of any kind
-- No CI/CD pipeline (no GitHub Actions)
-- README is the default Vite template — not project-specific
+### What Works
+- Full marketing landing page (Hero, Features, How It Works, Pricing, Social Proof, Testimonials, FAQ, Contact, Footer)
+- Animated globe with satellites, dark/light mode, responsive mobile nav, scroll progress bar
+- AI-powered eSIM Finder (chat widget) backed by Claude Haiku via `/api/chat`
+- Stripe Checkout integrated for all pricing tiers with webhook-driven order flow
+- eSIM.travel primary provider + eSIMVault (esimmcp.com) secondary — QR code provisioning + email delivery
+- User auth, order history, account management, renewals
+- Analytics, SEO, referrals, email capture
+- CI/CD via GitHub Actions, deployed to Render
+
+### Known Tech Debt
+- Phases shipped without VERIFICATION.md / SUMMARY.md artifacts (see `milestones/v1.0-MILESTONE-AUDIT.md`)
+- No mobile app (referenced in FAQ + hero CTA) — deferred
+
+### Next Milestone
+_Not yet defined. Run `/gsd-new-milestone` to plan v1.1._
 
 ## Revenue Model
 

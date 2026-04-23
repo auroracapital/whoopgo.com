@@ -4,7 +4,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import Stripe from "stripe";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
-import { timingSafeEqual } from "crypto";
+import { createHmac, timingSafeEqual } from "crypto";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -122,12 +122,23 @@ app.post("/api/chat", async (req, res) => {
 app.post("/api/checkout", async (req, res) => {
   if (!stripe) return res.status(503).json({ error: "Payments not configured" });
 
-  const { planId, country, email, coupon } = req.body;
+  const { planId, country, email, coupon, userId } = req.body;
 
   const plan = PLANS[planId];
   if (!plan) return res.status(400).json({ error: "Invalid plan ID" });
 
   try {
+    const metadata = {
+      planId,
+      planName: plan.name,
+      data: plan.data,
+      duration: plan.duration,
+      country: country ?? "US",
+    };
+    if (typeof userId === "string" && userId.trim() !== "") {
+      metadata.userId = userId.trim();
+    }
+
     const sessionParams = {
       payment_method_types: ["card"],
       mode: "payment",
@@ -146,13 +157,7 @@ app.post("/api/checkout", async (req, res) => {
         },
       ],
       customer_email: email,
-      metadata: {
-        planId,
-        planName: plan.name,
-        data: plan.data,
-        duration: plan.duration,
-        country: country ?? "US",
-      },
+      metadata,
       success_url: `${BASE_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${BASE_URL}/checkout/cancel`,
     };
@@ -190,7 +195,8 @@ app.post("/api/webhooks/stripe", async (req, res) => {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
-    const { planId, planName, data, duration, country } = session.metadata ?? {};
+    const { planId, planName, data, duration, country, userId } =
+      session.metadata ?? {};
 
     // Persist order
     const order = {
@@ -204,6 +210,7 @@ app.post("/api/webhooks/stripe", async (req, res) => {
       status: "provisioning",
       createdAt: new Date().toISOString(),
       qrCode: null,
+      ...(typeof userId === "string" && userId !== "" ? { userId } : {}),
     };
     orders.set(session.id, order);
 
@@ -298,6 +305,20 @@ async function provisionEsim(sessionId, order) {
 }
 
 // ─── Orders API ───────────────────────────────────────────────────────────────
+
+// User-facing: list by userId only. Email must not be used for lookup here — it
+// is not a secret, so an unauthenticated email filter would leak eSIM credentials
+// to anyone who knows the address. (Admin email filter lives on /api/orders.)
+app.get("/api/orders/by-user", (req, res) => {
+  const { userId } = req.query;
+  if (!userId || typeof userId !== "string") {
+    return res.status(400).json({ error: "userId required" });
+  }
+  const all = Array.from(orders.values());
+  const filtered = all.filter((o) => o.userId === userId);
+  res.json(filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+});
+
 app.get("/api/orders/:sessionId", (req, res) => {
   const order = orders.get(req.params.sessionId);
   if (!order) return res.status(404).json({ error: "Order not found" });
@@ -306,8 +327,10 @@ app.get("/api/orders/:sessionId", (req, res) => {
 
 /**
  * Admin-only: requires a bearer token matching ADMIN_API_TOKEN.
- * Uses timingSafeEqual to prevent timing attacks. If ADMIN_API_TOKEN is
- * unset, the endpoint is hard-disabled (503) — no silent auth bypass.
+ * Compares HMAC-SHA256 digests (keyed by the expected token) with
+ * timingSafeEqual so length alone cannot short-circuit verification.
+ * If ADMIN_API_TOKEN is unset, the endpoint is hard-disabled (503) —
+ * no silent auth bypass.
  *
  * Phase 4 will replace this with Clerk admin-role verification once the
  * backend is wired to @clerk/backend verifyToken().
@@ -321,24 +344,26 @@ function requireAdmin(req, res, next) {
   const header = req.headers.authorization ?? "";
   const provided = header.startsWith("Bearer ") ? header.slice(7) : "";
 
-  const expectedBuf = Buffer.from(expected, "utf8");
-  const providedBuf = Buffer.from(provided, "utf8");
+  const macKey = Buffer.from(expected, "utf8");
+  const expectedMac = createHmac("sha256", macKey)
+    .update(expected, "utf8")
+    .digest();
+  const providedMac = createHmac("sha256", macKey)
+    .update(provided, "utf8")
+    .digest();
 
-  if (
-    providedBuf.length !== expectedBuf.length ||
-    !timingSafeEqual(providedBuf, expectedBuf)
-  ) {
+  if (!timingSafeEqual(providedMac, expectedMac)) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
   next();
 }
 
+// Admin-only: full unfiltered order list.
 app.get("/api/orders", requireAdmin, (req, res) => {
   const { userId, email } = req.query;
   const all = Array.from(orders.values());
 
-  // Filter by email if provided (Phase 4: filter by userId once auth is wired)
   const filtered = email
     ? all.filter((o) => o.email === email)
     : userId

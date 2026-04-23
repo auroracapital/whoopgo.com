@@ -1,8 +1,26 @@
+---
+gsd_state_version: 1.0
+milestone: none
+milestone_name: (planning next milestone)
+status: milestone_complete
+last_updated: "2026-04-23T07:47:38.641Z"
+last_activity: "v1.0 milestone archived 2026-04-22"
+progress:
+  total_phases: 5
+  completed_phases: 5
+  total_plans: 0
+  completed_plans: 0
+shipped_milestones:
+  - version: v1.0
+    name: Launch-Ready eSIM Storefront
+    shipped: 2026-04-16
+---
+
 # Project State
 
-## Current Phase: Complete
+## Current Phase: v1.0 archived — awaiting next milestone
 
-All 5 phases shipped + eSIMVault (esimmcp.com) integration complete.
+v1.0 shipped 2026-04-16 (PR #6 + PR #7). All 5 phases + eSIMVault integration complete. Run `/gsd-new-milestone` to define v1.1.
 
 ## Completed Milestones
 

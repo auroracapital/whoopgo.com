@@ -27,7 +27,7 @@ export function OrderDashboard({ userId }: OrderDashboardProps) {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const res = await fetch(`/api/orders?userId=${encodeURIComponent(userId)}`);
+        const res = await fetch(`/api/orders/by-user?userId=${encodeURIComponent(userId)}`);
         if (res.ok) {
           const data = (await res.json()) as Order[];
           setOrders(data);

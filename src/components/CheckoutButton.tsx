@@ -7,6 +7,8 @@ interface CheckoutButtonProps {
   plan: Plan;
   country?: string;
   email?: string;
+  /** Clerk user id — passed into Stripe metadata so webhook can attach orders to the account */
+  userId?: string;
   coupon?: string;
   className?: string;
   children?: React.ReactNode;
@@ -17,6 +19,7 @@ export function CheckoutButton({
   plan,
   country,
   email,
+  userId,
   coupon,
   className,
   children,
@@ -41,6 +44,7 @@ export function CheckoutButton({
           planId: plan.id,
           country: country ?? "US",
           email,
+          ...(userId ? { userId } : {}),
           coupon: resolvedCoupon,
         }),
       });
