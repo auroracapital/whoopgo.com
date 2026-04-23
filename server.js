@@ -122,12 +122,23 @@ app.post("/api/chat", async (req, res) => {
 app.post("/api/checkout", async (req, res) => {
   if (!stripe) return res.status(503).json({ error: "Payments not configured" });
 
-  const { planId, country, email, coupon } = req.body;
+  const { planId, country, email, coupon, userId } = req.body;
 
   const plan = PLANS[planId];
   if (!plan) return res.status(400).json({ error: "Invalid plan ID" });
 
   try {
+    const metadata = {
+      planId,
+      planName: plan.name,
+      data: plan.data,
+      duration: plan.duration,
+      country: country ?? "US",
+    };
+    if (typeof userId === "string" && userId.trim() !== "") {
+      metadata.userId = userId.trim();
+    }
+
     const sessionParams = {
       payment_method_types: ["card"],
       mode: "payment",
@@ -146,13 +157,7 @@ app.post("/api/checkout", async (req, res) => {
         },
       ],
       customer_email: email,
-      metadata: {
-        planId,
-        planName: plan.name,
-        data: plan.data,
-        duration: plan.duration,
-        country: country ?? "US",
-      },
+      metadata,
       success_url: `${BASE_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${BASE_URL}/checkout/cancel`,
     };
@@ -190,7 +195,8 @@ app.post("/api/webhooks/stripe", async (req, res) => {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
-    const { planId, planName, data, duration, country } = session.metadata ?? {};
+    const { planId, planName, data, duration, country, userId } =
+      session.metadata ?? {};
 
     // Persist order
     const order = {
@@ -204,6 +210,7 @@ app.post("/api/webhooks/stripe", async (req, res) => {
       status: "provisioning",
       createdAt: new Date().toISOString(),
       qrCode: null,
+      ...(typeof userId === "string" && userId !== "" ? { userId } : {}),
     };
     orders.set(session.id, order);
 

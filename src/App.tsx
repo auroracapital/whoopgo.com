@@ -566,6 +566,7 @@ function HowItWorksSection() {
 
 // ─── Pricing ─────────────────────────────────────────────────────────────────
 function PricingSection() {
+  const { user } = useAuth();
   const plans = [
     { id: "eu-5gb-7d", name: "Tourist", price: 9.99, data: "5GB", days: 7, features: ["5GB High-Speed Data", "7 Days Validity", "30+ Countries", "24/7 Support"] },
     { id: "eu-10gb-15d", name: "Traveler", price: 19.99, data: "10GB", days: 15, popular: true, features: ["10GB High-Speed Data", "15 Days Validity", "30+ Countries", "Priority Support", "Hotspot Enabled"] },
@@ -643,6 +644,7 @@ function PricingSection() {
                   {plan.popular ? (
                     <CheckoutButton
                       plan={{ id: plan.id, name: plan.name, data: plan.data, duration: `${plan.days} days`, price: Math.round(plan.price * 100), description: plan.features[0] }}
+                      userId={user?.id}
                       className="w-full rounded-xl bg-[#E67E3C] hover:bg-[#D86E2C] text-white"
                     >
                       Get Started — ${plan.price}
@@ -651,6 +653,7 @@ function PricingSection() {
                     <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                       <CheckoutButton
                         plan={{ id: plan.id, name: plan.name, data: plan.data, duration: `${plan.days} days`, price: Math.round(plan.price * 100), description: plan.features[0] }}
+                        userId={user?.id}
                         variant="outline"
                         className="w-full rounded-xl bg-background/50 dark:bg-white/[0.04] hover:bg-background/80 dark:hover:bg-white/[0.08] transition-all duration-300"
                       >
