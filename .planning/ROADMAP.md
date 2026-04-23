@@ -12,7 +12,7 @@
 
 **Repo:** `whoopgo.com`
 
-**Status:**
+**Status:** Complete
 
 **Success Criteria:**
 - GitHub Actions CI: lint + type-check passes on every PR
@@ -29,7 +29,7 @@
 
 **Repo:** `whoopgo.com`
 
-**Status:**
+**Status:** Complete
 
 **Success Criteria:**
 - Stripe Checkout or Payment Element integrated
@@ -47,7 +47,7 @@
 
 **Repo:** `whoopgo.com`
 
-**Status:**
+**Status:** Complete
 
 **Success Criteria:**
 - eSIM provider API integrated in backend
@@ -64,7 +64,7 @@
 
 **Repo:** `whoopgo.com`
 
-**Status:**
+**Status:** Complete
 
 **Success Criteria:**
 - Auth implemented (Clerk or NextAuth — magic link / Google OAuth)
@@ -81,7 +81,7 @@
 
 **Repo:** `whoopgo.com`
 
-**Status:**
+**Status:** Complete
 
 **Success Criteria:**
 - Analytics integrated (PostHog or Plausible) — purchase funnel tracked
