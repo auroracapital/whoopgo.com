@@ -32,6 +32,15 @@ function mockLogger() {
   };
 }
 
+/** Avoid real DB when DATABASE_URL is set in the environment. */
+function noopRepo() {
+  return {
+    upsertUser: async () => {},
+    updateUser: async () => {},
+    softDeleteUser: async () => {},
+  };
+}
+
 test("returns 503 when CLERK_WEBHOOK_SECRET is not configured", async () => {
   const handler = createClerkWebhookHandler({
     getSecret: () => undefined,
@@ -102,6 +111,7 @@ test("handles user.created and logs id + email", async () => {
     getSecret: () => "whsec_test",
     verifierFactory: () => ({ verify: () => payload }),
     logger,
+    repo: noopRepo(),
   });
   const req = {
     headers: {
@@ -131,6 +141,7 @@ test("handles user.updated", async () => {
       verify: () => ({ type: "user.updated", data: { id: "user_xyz" } }),
     }),
     logger,
+    repo: noopRepo(),
   });
   const res = mockRes();
   await handler({ headers: {}, body: Buffer.from("{}") }, res);
@@ -146,6 +157,7 @@ test("handles user.deleted", async () => {
       verify: () => ({ type: "user.deleted", data: { id: "user_del" } }),
     }),
     logger,
+    repo: noopRepo(),
   });
   const res = mockRes();
   await handler({ headers: {}, body: Buffer.from("{}") }, res);
