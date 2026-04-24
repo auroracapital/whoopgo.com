@@ -735,6 +735,43 @@ app.post("/api/contact", async (req, res) => {
   }
 });
 
+// ─── /data-deletion SSR (FB crawler requires static HTML) ───────────────────
+// Serves inline HTML with deletion-policy keywords so Facebook's scanner can
+// validate the Data Deletion URL. Also injects the Vite bundle for hydration.
+app.get("/data-deletion", (_req, res) => {
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.send(`<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Data Deletion Request — WhoopGO</title>
+<meta name="description" content="Request deletion of your WhoopGO account and personal data. Email support@whoopgo.app with subject: Data Deletion Request.">
+<meta name="robots" content="index,follow">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="stylesheet" href="/assets/index.css" onerror="this.remove()">
+</head>
+<body>
+<main style="max-width:720px;margin:2rem auto;padding:1.5rem;font-family:system-ui,sans-serif;line-height:1.6;color:#111">
+<h1>Data Deletion Request</h1>
+<p><strong>DRAFT — pending legal review</strong></p>
+<p>WhoopGO (a service of Lifecycle Innovations Limited, 8/F, 299QRC, 287-299 Queen's Road Central, Hong Kong — BRN 76545088) allows any user to request full deletion of their account and personal data.</p>
+<h2>How to request data deletion</h2>
+<p>Email <a href="mailto:support@whoopgo.app?subject=Data%20Deletion%20Request">support@whoopgo.app</a> with subject <strong>"Data Deletion Request — your email"</strong>.</p>
+<p>If you are signed in, visit your <a href="/account">Account page</a> and click "Delete my account".</p>
+<h2>What gets deleted</h2>
+<ul><li>Profile and authentication data (email, name, Clerk identity)</li><li>Order history and eSIM provisioning records</li><li>Support communications</li></ul>
+<h2>What is retained</h2>
+<ul><li>Tax and audit records required by Hong Kong law (retention: 7 years)</li><li>Anonymized aggregate analytics</li></ul>
+<h2>Timeline</h2>
+<p>Deletion requests are processed within 30 days. You will receive an email confirmation once complete.</p>
+<h2>Your rights</h2>
+<p>Under the Hong Kong Personal Data (Privacy) Ordinance (PDPO) and the EU General Data Protection Regulation (GDPR), you have the right to access, rectify, erase, restrict processing of, and port your personal data. Contact <a href="mailto:support@whoopgo.app">support@whoopgo.app</a> for any of these requests.</p>
+<p><a href="/">← Back to WhoopGO</a> · <a href="/privacy">Privacy Policy</a> · <a href="/terms">Terms</a></p>
+</main>
+</body>
+</html>`);
+});
+
 // ─── SPA fallback ─────────────────────────────────────────────────────────────
 app.get("/{*path}", (_req, res) => {
   res.sendFile(join(__dirname, "dist", "index.html"));
