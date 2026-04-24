@@ -105,7 +105,7 @@ export function TermsOfService() {
             </p>
           </section>
 
-          <section>
+          <section id="refunds">
             <h2 className="text-2xl font-bold mb-4">7. Refunds & Cancellations</h2>
             <p className="leading-relaxed mb-3">
               Because eSIM data plans are digital goods that begin delivery immediately on
