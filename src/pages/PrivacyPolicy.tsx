@@ -23,13 +23,13 @@ export function PrivacyPolicy() {
 
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700/60 rounded-xl p-5 mb-8">
           <p className="text-sm font-semibold text-amber-900 dark:text-amber-200 mb-1">
-            DRAFT — pending legal review
+            DRAFT — pending Hong Kong legal review
           </p>
           <p className="text-sm text-amber-800 dark:text-amber-300/90">
             This policy is a reasonable default draft for WhoopGO! and has not yet been
-            reviewed by qualified legal counsel. It is published here to satisfy baseline
-            platform requirements (e.g. OAuth consent screens) and will be revised before
-            being relied upon as a definitive data-processing notice.
+            reviewed by qualified Hong Kong legal counsel. It is published here to satisfy
+            baseline platform requirements (e.g. OAuth consent screens) and will be revised
+            before being relied upon as a definitive data-processing notice.
           </p>
         </div>
 
@@ -37,10 +37,13 @@ export function PrivacyPolicy() {
           <section>
             <h2 className="text-2xl font-bold mb-4">1. Who We Are</h2>
             <p className="leading-relaxed">
-              WhoopGO! is operated by Aurora Capital B.V., incorporated in the Netherlands
-              (the &ldquo;Company&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;). We are the data controller for personal
-              data processed through our website, mobile application, and services.
-              Registered office: &lt;address TBD&gt;, Amsterdam, Netherlands. Contact:{" "}
+              WhoopGO! is a service of Lifecycle Innovations Limited, incorporated in the
+              Hong Kong Special Administrative Region (the &ldquo;Company&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;). For
+              the purposes of the Hong Kong Personal Data (Privacy) Ordinance (Cap. 486)
+              (&ldquo;PDPO&rdquo;) we are the data user, and for the purposes of the EU General Data
+              Protection Regulation (&ldquo;GDPR&rdquo;) we are the data controller for personal data
+              processed through our website, mobile application, and services. Registered
+              office: &lt;HK address TBD&gt;, Hong Kong SAR. Contact:{" "}
               <a className="text-[#E67E3C] hover:underline" href="mailto:support@whoopgo.app">
                 support@whoopgo.app
               </a>
@@ -51,10 +54,13 @@ export function PrivacyPolicy() {
           <section>
             <h2 className="text-2xl font-bold mb-4">2. Scope</h2>
             <p className="leading-relaxed">
-              This policy explains what personal data we collect when you visit our
-              website, create an account, or purchase an eSIM plan, how we use it, who we
-              share it with, and the rights you have under the EU General Data Protection
-              Regulation (GDPR) and the Dutch implementing legislation.
+              WhoopGO! serves customers globally. This policy explains what personal data
+              we collect when you visit our website, create an account, or purchase an
+              eSIM plan, how we use it, who we share it with, and the rights you have.
+              Our primary privacy framework is the PDPO; we also honour the rights granted
+              to users in the European Economic Area and the United Kingdom under the GDPR
+              and UK GDPR, and we apply equivalent protections to users in other
+              jurisdictions where local law does not provide a stronger baseline.
             </p>
           </section>
 
@@ -89,23 +95,34 @@ export function PrivacyPolicy() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold mb-4">4. How We Use Data (Legal Bases)</h2>
+            <h2 className="text-2xl font-bold mb-4">4. How We Use Data</h2>
+            <p className="leading-relaxed mb-3">
+              Under the PDPO, we collect personal data only for lawful purposes directly
+              related to our functions and activities as an eSIM service provider, and we
+              use it only for those purposes or directly related purposes unless you give
+              your prescribed consent. For users protected by the GDPR, the corresponding
+              legal bases are shown in brackets below.
+            </p>
             <ul className="list-disc pl-6 space-y-2">
               <li>
-                <strong>To perform our contract with you</strong> — creating your account,
-                processing payments, delivering your eSIM, and providing support.
+                <strong>To provide the Services</strong> — creating your account,
+                processing payments, delivering your eSIM, and providing support
+                <em> (GDPR: performance of a contract)</em>.
               </li>
               <li>
                 <strong>To comply with legal obligations</strong> — tax, accounting, and
-                applicable telecoms and consumer-protection rules.
+                applicable telecoms and consumer-protection rules in Hong Kong and, where
+                relevant, other jurisdictions <em>(GDPR: legal obligation)</em>.
               </li>
               <li>
-                <strong>For our legitimate interests</strong> — fraud prevention, network
-                abuse prevention, product analytics, and securing our systems.
+                <strong>For operational and security purposes</strong> — fraud prevention,
+                network abuse prevention, product analytics, and securing our systems
+                <em> (GDPR: legitimate interests)</em>.
               </li>
               <li>
-                <strong>With your consent</strong> — for optional marketing emails and
-                non-essential cookies, where we ask for opt-in.
+                <strong>With your consent</strong> — optional marketing emails and
+                non-essential cookies, where we ask for opt-in <em>(GDPR: consent; PDPO:
+                prescribed consent for direct marketing per Part VIA)</em>.
               </li>
             </ul>
           </section>
@@ -132,13 +149,14 @@ export function PrivacyPolicy() {
           <section>
             <h2 className="text-2xl font-bold mb-4">6. Who We Share Data With</h2>
             <p className="leading-relaxed mb-3">
-              We share personal data only with service providers acting as processors on
-              our behalf, bound by data-processing agreements:
+              We share personal data only with service providers acting on our behalf,
+              bound by confidentiality and data-processing obligations:
             </p>
             <ul className="list-disc pl-6 space-y-2">
               <li><strong>Clerk, Inc.</strong> — authentication and account management.</li>
               <li><strong>Stripe, Inc.</strong> — payment processing.</li>
               <li><strong>Airalo</strong> — eSIM profile provisioning and carrier fulfilment.</li>
+              <li><strong>Cloudflare, Inc.</strong> — CDN, DNS, and edge security.</li>
               <li>
                 <strong>Infrastructure &amp; email providers</strong> — hosting, transactional
                 email, and error monitoring services used to operate the website and
@@ -146,10 +164,13 @@ export function PrivacyPolicy() {
               </li>
             </ul>
             <p className="leading-relaxed mt-3">
-              We may also disclose data where required by law or to protect our rights.
-              Some of these providers may process data outside the European Economic Area;
-              where they do, we rely on appropriate safeguards such as the European
-              Commission&rsquo;s Standard Contractual Clauses.
+              Because WhoopGO! is a global service, personal data may be processed outside
+              Hong Kong, including in the United States and the European Economic Area. We
+              take reasonably practicable steps to ensure that any cross-border transfer
+              complies with the PDPO and, where applicable, we rely on appropriate
+              safeguards such as the European Commission&rsquo;s Standard Contractual Clauses
+              for transfers involving EEA/UK personal data. We may also disclose data where
+              required by law or to protect our rights.
             </p>
           </section>
 
@@ -157,31 +178,43 @@ export function PrivacyPolicy() {
             <h2 className="text-2xl font-bold mb-4">7. Data Retention</h2>
             <p className="leading-relaxed">
               We retain account and transaction records for as long as your account is
-              active and for a reasonable period afterwards to comply with tax and
-              accounting obligations (typically up to 7 years under Dutch law). eSIM
-              provisioning data is retained for as long as needed to support the plan and
-              handle any disputes. Support correspondence is retained for up to 3 years.
-              Marketing data is deleted when you unsubscribe.
+              active and for a reasonable period afterwards to comply with tax, accounting,
+              and audit obligations (typically up to 7 years, consistent with Hong Kong
+              record-keeping practice under the Inland Revenue Ordinance and the Companies
+              Ordinance). eSIM provisioning data is retained for as long as needed to
+              support the plan and handle any disputes. Support correspondence is retained
+              for up to 3 years. Marketing data is deleted when you unsubscribe.
             </p>
           </section>
 
           <section>
             <h2 className="text-2xl font-bold mb-4">8. Your Rights</h2>
             <p className="leading-relaxed mb-3">
-              Under the GDPR you have the right to:
+              Under the PDPO (Data Access and Data Correction Requests, sections 18 and
+              22) you have the right to:
             </p>
             <ul className="list-disc pl-6 space-y-2">
-              <li>Access the personal data we hold about you.</li>
-              <li>Have inaccurate data rectified.</li>
-              <li>Have your data erased (&ldquo;right to be forgotten&rdquo;), subject to legal retention duties.</li>
+              <li>Ask whether we hold personal data about you, and request a copy of it.</li>
+              <li>Request correction of personal data that is inaccurate.</li>
+              <li>
+                Opt out of the use of your personal data for direct marketing at any time,
+                free of charge.
+              </li>
+              <li>
+                Lodge a complaint with the Office of the Privacy Commissioner for Personal
+                Data, Hong Kong (<a className="text-[#E67E3C] hover:underline" href="https://www.pcpd.org.hk" target="_blank" rel="noreferrer">pcpd.org.hk</a>).
+              </li>
+            </ul>
+            <p className="leading-relaxed mt-3 mb-3">
+              If you are located in the EEA or UK, the GDPR additionally gives you the
+              right to:
+            </p>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>Have your data erased, subject to legal retention duties.</li>
               <li>Restrict or object to certain processing.</li>
               <li>Receive your data in a portable, machine-readable format.</li>
               <li>Withdraw consent at any time where processing is based on consent.</li>
-              <li>
-                Lodge a complaint with the Dutch Data Protection Authority (Autoriteit
-                Persoonsgegevens, <a className="text-[#E67E3C] hover:underline" href="https://www.autoriteitpersoonsgegevens.nl" target="_blank" rel="noreferrer">autoriteitpersoonsgegevens.nl</a>)
-                or your local supervisory authority.
-              </li>
+              <li>Lodge a complaint with your local data protection authority.</li>
             </ul>
             <p className="leading-relaxed mt-3">
               To exercise any of these rights, email{" "}
@@ -195,10 +228,11 @@ export function PrivacyPolicy() {
           <section>
             <h2 className="text-2xl font-bold mb-4">9. Security</h2>
             <p className="leading-relaxed">
-              We use industry-standard technical and organisational measures such as
+              We use reasonably practicable technical and organisational measures such as
               encryption in transit (TLS), access controls, and logging to protect personal
-              data. No method of transmission or storage is perfectly secure, and we cannot
-              guarantee absolute security.
+              data, consistent with Data Protection Principle 4 of the PDPO. No method of
+              transmission or storage is perfectly secure, and we cannot guarantee absolute
+              security.
             </p>
           </section>
 
