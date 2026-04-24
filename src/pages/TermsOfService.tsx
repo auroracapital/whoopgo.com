@@ -23,13 +23,13 @@ export function TermsOfService() {
 
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700/60 rounded-xl p-5 mb-8">
           <p className="text-sm font-semibold text-amber-900 dark:text-amber-200 mb-1">
-            DRAFT — pending legal review
+            DRAFT — pending Hong Kong legal review
           </p>
           <p className="text-sm text-amber-800 dark:text-amber-300/90">
             These terms are a reasonable default draft for WhoopGO! and have not yet been
-            reviewed by qualified legal counsel. They are published here to satisfy baseline
-            platform requirements (e.g. OAuth consent screens) and will be revised before
-            being relied upon as a definitive legal agreement.
+            reviewed by qualified Hong Kong legal counsel. They are published here to
+            satisfy baseline platform requirements (e.g. OAuth consent screens) and will
+            be revised before being relied upon as a definitive legal agreement.
           </p>
         </div>
 
@@ -46,10 +46,11 @@ export function TermsOfService() {
           <section>
             <h2 className="text-2xl font-bold mb-4">2. About Us</h2>
             <p className="leading-relaxed">
-              WhoopGO! is operated by Aurora Capital B.V., a company incorporated under the
-              laws of the Netherlands (the &ldquo;Company&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;). Our
-              registered office address is &lt;address TBD&gt;, Amsterdam, Netherlands. You can
-              contact us at <a className="text-[#E67E3C] hover:underline" href="mailto:support@whoopgo.app">support@whoopgo.app</a>.
+              WhoopGO! is a service of Lifecycle Innovations Limited, a company
+              incorporated in the Hong Kong Special Administrative Region of the
+              People&rsquo;s Republic of China (the &ldquo;Company&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;). Our
+              registered office is &lt;HK address TBD&gt;, Hong Kong SAR. You can contact us at{" "}
+              <a className="text-[#E67E3C] hover:underline" href="mailto:support@whoopgo.app">support@whoopgo.app</a>.
             </p>
           </section>
 
@@ -89,8 +90,9 @@ export function TermsOfService() {
               on our systems.
             </p>
             <p className="leading-relaxed">
-              Taxes may apply based on your billing address. Prices and available plans may
-              change without notice; changes do not affect orders already placed.
+              Taxes, duties, or levies may apply based on your billing address. Prices and
+              available plans may change without notice; changes do not affect orders
+              already placed.
             </p>
           </section>
 
@@ -108,11 +110,14 @@ export function TermsOfService() {
           <section>
             <h2 className="text-2xl font-bold mb-4">7. Refunds & Cancellations</h2>
             <p className="leading-relaxed mb-3">
-              Because eSIM data plans are digital goods that begin delivery immediately on
-              purchase, they are generally non-refundable once the eSIM has been installed,
-              activated, or partially consumed. Where required by Dutch and EU consumer law,
-              you may have a statutory right of withdrawal; where applicable you may lose
-              that right by expressly consenting to immediate performance at checkout.
+              eSIM data plans are digital goods whose delivery begins immediately on
+              purchase and are therefore generally non-refundable once the eSIM has been
+              installed, activated, or partially consumed. Nothing in this section excludes
+              or limits any statutory rights you may have under applicable consumer
+              protection legislation in your country of residence (including, where
+              relevant, the Hong Kong Sale of Goods Ordinance (Cap. 26), the Supply of
+              Services (Implied Terms) Ordinance (Cap. 457), and the Trade Descriptions
+              Ordinance (Cap. 362)).
             </p>
             <p className="leading-relaxed">
               If your eSIM does not work due to a technical issue on our side, contact
@@ -135,10 +140,11 @@ export function TermsOfService() {
           <section>
             <h2 className="text-2xl font-bold mb-4">9. Intellectual Property</h2>
             <p className="leading-relaxed">
-              The WhoopGO! name, logo, website, and all related content are owned by Aurora
-              Capital B.V. or its licensors and are protected by applicable intellectual
-              property laws. You are granted a limited, non-exclusive, non-transferable
-              license to use the Services for personal, non-commercial purposes.
+              The WhoopGO! name, logo, website, and all related content are owned by
+              Lifecycle Innovations Limited or its licensors and are protected by
+              applicable intellectual property laws. You are granted a limited,
+              non-exclusive, non-transferable license to use the Services for personal,
+              non-commercial purposes.
             </p>
           </section>
 
@@ -161,8 +167,9 @@ export function TermsOfService() {
               us for the specific plan giving rise to the claim in the 12 months preceding
               the event. We are not liable for indirect, incidental, consequential, or
               punitive damages, including lost profits, lost data, or loss of goodwill.
-              Nothing in these terms limits liability that cannot be limited under Dutch or
-              EU mandatory law.
+              Nothing in these terms limits liability that cannot be limited or excluded
+              under the laws of Hong Kong or the mandatory consumer-protection law of your
+              country of residence.
             </p>
           </section>
 
@@ -188,12 +195,21 @@ export function TermsOfService() {
 
           <section>
             <h2 className="text-2xl font-bold mb-4">14. Governing Law & Disputes</h2>
+            <p className="leading-relaxed mb-3">
+              These terms and any non-contractual obligations arising from them are
+              governed by the laws of the Hong Kong Special Administrative Region,
+              excluding its conflict-of-law rules.
+            </p>
             <p className="leading-relaxed">
-              These terms are governed by the laws of the Netherlands, excluding its
-              conflict-of-law rules. Any dispute will be submitted to the competent courts
-              of Amsterdam, the Netherlands, unless mandatory consumer-protection law grants
-              you the right to bring proceedings in another forum. Consumers in the EU may
-              also access the European Commission&rsquo;s Online Dispute Resolution platform.
+              Any dispute, controversy, or claim arising out of or relating to these terms
+              or the Services shall be referred to and finally resolved by arbitration
+              administered by the Hong Kong International Arbitration Centre (HKIAC) under
+              the HKIAC Administered Arbitration Rules in force when the Notice of
+              Arbitration is submitted. The seat of arbitration shall be Hong Kong, the
+              tribunal shall consist of one arbitrator, and the language of the arbitration
+              shall be English. Nothing in this clause prevents a consumer from bringing
+              proceedings in the courts of their country of habitual residence where
+              mandatory local law grants that right.
             </p>
           </section>
 
