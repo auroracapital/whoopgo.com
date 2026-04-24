@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { createHmac, timingSafeEqual } from "crypto";
 import { createClerkWebhookHandler } from "./src/server/clerk-webhook.js";
+import { sendOrderReceipt } from "./src/server/email.js";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -254,20 +255,26 @@ async function provisionEsim(sessionId, order) {
       activationCode: qrData?.activationCode ?? null,
     });
 
-    // Send email with QR code
+    // Send branded receipt + QR via Resend (Phase 10).
     if (order.email) {
-      await sendEsimEmail(order.email, {
-        planName: order.planName,
-        data: order.data,
-        duration: order.duration,
-        country: order.country,
-        qrCode: qrData?.qrCode,
-        iccid: qrData?.iccid,
-        activationCode: qrData?.activationCode,
-      });
+      try {
+        await sendOrderReceipt({
+          user: { email: order.email },
+          plan: { name: order.planName, data: order.data, duration: order.duration },
+          country: order.country,
+          qrCode: qrData?.qrCode,
+          iccid: qrData?.iccid,
+          activationCode: qrData?.activationCode,
+          amountCents: PLANS[order.planId]?.price,
+          currency: "usd",
+          sessionId,
+        });
+      } catch (err) {
+        console.error(`Order receipt email failed for ${sessionId}:`, err);
+      }
     }
 
-    console.log(`eSIM provisioned via ${provider}: ${sessionId}`);
+    console.log(`eSIM provisioned via esimmcp: ${sessionId}`);
   } catch (err) {
     console.error(`eSIM provisioning failed for ${sessionId}:`, err);
     orders.set(sessionId, {
@@ -559,74 +566,8 @@ async function callEsimmcpApi(order) {
 }
 
 // ─── Email Delivery ───────────────────────────────────────────────────────────
-async function sendEsimEmail(to, { planName, data, duration, country, qrCode, iccid, activationCode }) {
-  const resendKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM ?? "orders@whoopgo.com";
-
-  if (!resendKey) {
-    console.warn("RESEND_API_KEY not set — skipping email delivery");
-    return;
-  }
-
-  const qrCodeImg = qrCode
-    ? `<img src="${qrCode}" alt="eSIM QR Code" width="200" style="margin: 16px auto; display: block;" />`
-    : "<p>Your QR code will arrive shortly.</p>";
-
-  // Show LPA string for manual entry if QR scan fails (eSIMVault eSIMs)
-  const lpaSection = activationCode && activationCode.startsWith("LPA:")
-    ? `<p style="font-size: 11px; color: #999; margin-top: 6px; word-break: break-all;">Manual code: ${activationCode}</p>`
-    : "";
-
-  const html = `
-    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 32px;">
-      <img src="${BASE_URL}/logo.png" alt="WhoopGO!" width="120" style="margin-bottom: 24px;" />
-      <h1 style="font-size: 24px; font-weight: 900; margin-bottom: 8px;">Your eSIM is ready! 🎉</h1>
-      <p style="color: #666; margin-bottom: 24px;">
-        Your <strong>${planName}</strong> plan (${data} · ${duration} · ${country}) has been provisioned.
-      </p>
-
-      <div style="background: #f9f9f9; border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px;">
-        <h2 style="font-size: 16px; margin-bottom: 12px;">Scan to activate your eSIM</h2>
-        ${qrCodeImg}
-        ${iccid ? `<p style="font-size: 12px; color: #999; margin-top: 8px;">ICCID: ${iccid}</p>` : ""}
-        ${lpaSection}
-      </div>
-
-      <h3 style="font-size: 16px; margin-bottom: 12px;">How to activate:</h3>
-      <ol style="color: #444; line-height: 1.8; padding-left: 20px;">
-        <li>Go to Settings → Mobile → Add eSIM</li>
-        <li>Scan the QR code above</li>
-        <li>Select WhoopGO! as your data plan when roaming</li>
-        <li>Activate when you land — data starts immediately</li>
-      </ol>
-
-      <p style="color: #999; font-size: 12px; margin-top: 32px; text-align: center;">
-        Questions? Reply to this email or visit whoopgo.com<br />
-        WhoopGO! · Instant eSIM for global travelers
-      </p>
-    </div>
-  `;
-
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${resendKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from,
-      to,
-      subject: `Your WhoopGO! eSIM — ${planName} Plan`,
-      html,
-    }),
-  });
-
-  if (!res.ok) {
-    const body = await res.text();
-    console.error("Resend email failed:", body);
-    throw new Error(`Email delivery failed: ${res.status}`);
-  }
-}
+// Transactional email (welcome + order receipt) lives in src/server/email.js.
+// The helpers below handle the legacy magic-link and contact-form paths.
 
 async function sendMagicLinkEmail(to) {
   const resendKey = process.env.RESEND_API_KEY;
