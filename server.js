@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import Stripe from "stripe";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
@@ -25,13 +25,14 @@ app.use(express.json());
 app.use(express.static(join(__dirname, "dist")));
 
 // ─── Clients ─────────────────────────────────────────────────────────────────
-const apiKey = process.env.ANTHROPIC_API_KEY;
+const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) {
-  console.warn("WARNING: ANTHROPIC_API_KEY not set — chat will fail");
+  console.warn("WARNING: GEMINI_API_KEY not set — chat will fail");
 } else {
-  console.log("Anthropic API key loaded (" + apiKey.slice(0, 8) + "...)");
+  console.log("Gemini API key loaded (" + apiKey.slice(0, 8) + "...)");
 }
-const anthropicClient = new Anthropic({ apiKey: apiKey || "" });
+const geminiClient = new GoogleGenAI({ apiKey: apiKey || "" });
+const CHAT_MODEL = process.env.GEMINI_CHAT_MODEL || "gemini-3.1-flash-lite-preview";
 
 const stripeKey = process.env.STRIPE_SECRET_KEY;
 const stripe = stripeKey ? new Stripe(stripeKey) : null;
@@ -100,20 +101,23 @@ app.post("/api/chat", async (req, res) => {
       return res.status(400).json({ error: "messages array required" });
     }
 
-    const anthropicMessages = messages.map((m) => ({
-      role: m.type === "user" ? "user" : "assistant",
-      content: m.content,
+    // Map { type: "user" | "assistant", content } → Gemini Content[]
+    // Gemini uses role "user" | "model" and parts: [{ text }].
+    const contents = messages.map((m) => ({
+      role: m.type === "user" ? "user" : "model",
+      parts: [{ text: String(m.content ?? "") }],
     }));
 
-    const response = await anthropicClient.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 300,
-      system: SYSTEM_PROMPT,
-      messages: anthropicMessages,
+    const response = await geminiClient.models.generateContent({
+      model: CHAT_MODEL,
+      contents,
+      config: {
+        systemInstruction: SYSTEM_PROMPT,
+        maxOutputTokens: 300,
+      },
     });
 
-    const text =
-      response.content[0].type === "text" ? response.content[0].text : "";
+    const text = response?.text ?? "";
 
     res.json({ content: text });
   } catch (err) {
