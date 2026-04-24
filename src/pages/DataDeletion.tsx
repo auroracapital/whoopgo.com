@@ -1,10 +1,9 @@
 import { ArrowLeft, Mail, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { buildDataDeletionMailtoHref } from "@/lib/data-deletion-mailto";
 
 const LAST_UPDATED = "24 April 2026";
-const DELETION_MAILTO =
-  "mailto:support@whoopgo.app?subject=Data%20Deletion%20Request%20%E2%80%94%20%3Cyour%20email%3E&body=Hi%20WhoopGO%21%20team%2C%0A%0AI%20would%20like%20to%20request%20full%20deletion%20of%20my%20account%20and%20associated%20personal%20data.%0A%0AAccount%20email%3A%20%3Cyour%20email%3E%0A%0AThanks.";
 
 export function DataDeletion() {
   return (
@@ -65,7 +64,7 @@ export function DataDeletion() {
               </li>
             </ul>
             <Button asChild className="bg-[#E67E3C] hover:bg-[#D86E2C] text-white">
-              <a href={DELETION_MAILTO}>
+              <a href={buildDataDeletionMailtoHref()}>
                 <Mail className="h-4 w-4 mr-2" />
                 Email a Deletion Request
               </a>

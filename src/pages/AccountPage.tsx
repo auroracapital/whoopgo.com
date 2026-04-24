@@ -4,11 +4,9 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth";
+import { buildDataDeletionMailtoHref } from "@/lib/data-deletion-mailto";
 import { AuthModal } from "@/components/AuthModal";
 import { OrderDashboard } from "@/components/OrderDashboard";
-
-const DELETION_MAILTO =
-  "mailto:support@whoopgo.app?subject=Data%20Deletion%20Request%20%E2%80%94%20%3Cyour%20email%3E&body=Hi%20WhoopGO%21%20team%2C%0A%0AI%20would%20like%20to%20request%20full%20deletion%20of%20my%20account%20and%20associated%20personal%20data.%0A%0AAccount%20email%3A%20%3Cyour%20email%3E%0A%0AThanks.";
 
 export function AccountPage() {
   const { user, loading } = useAuth();
@@ -113,7 +111,7 @@ export function AccountPage() {
               className="border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive"
               asChild
             >
-              <a href={DELETION_MAILTO}>
+              <a href={buildDataDeletionMailtoHref(user.email)}>
                 <Trash2 className="w-4 h-4 mr-2" />
                 Email Deletion Request
               </a>
