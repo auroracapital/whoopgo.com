@@ -5,6 +5,7 @@ import Stripe from "stripe";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { createHmac, timingSafeEqual } from "crypto";
+import { createClerkWebhookHandler } from "./src/server/clerk-webhook.js";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -14,6 +15,9 @@ app.use(cors());
 
 // Raw body needed for Stripe webhook signature verification
 app.use("/api/webhooks/stripe", express.raw({ type: "application/json" }));
+
+// Raw body needed for Clerk webhook signature verification (svix)
+app.use("/api/webhooks/clerk", express.raw({ type: "application/json" }));
 
 app.use(express.json());
 
@@ -222,6 +226,9 @@ app.post("/api/webhooks/stripe", async (req, res) => {
 
   res.json({ received: true });
 });
+
+// ─── Clerk Webhooks (user sync) ───────────────────────────────────────────────
+app.post("/api/webhooks/clerk", createClerkWebhookHandler());
 
 // ─── eSIM Provider Abstraction ────────────────────────────────────────────────
 
