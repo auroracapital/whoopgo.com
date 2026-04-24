@@ -1,12 +1,12 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.1
-milestone_name: "v1.1 Post-Launch Trust & Consolidation"
-status: executing
+milestone_name: Conversion, Traffic & Trust
+status: planning
 last_updated: "2026-04-24T00:00:00.000Z"
-last_activity: "v1.1 milestone drafted; v1.0 addendum codified"
+last_activity: "v1.1 milestone kicked off 2026-04-24 — 6 phases (6-11) drafted"
 progress:
-  total_phases: 7
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,11 +21,9 @@ shipped_milestones:
 
 # Project State
 
-## Current Milestone: v1.1 Post-Launch Trust & Consolidation
+## Current Phase: v1.1 milestone drafted — awaiting phase planning
 
-Close the gaps left open by the 2026-04-24 out-of-band work: Clerk webhook persistence, real SSO coverage, counsel-reviewed legal pages, native-wallet checkout, branded transactional email, Facebook live mode, and an in-app admin console.
-
-Phases 6–12 all at CONTEXT.md stage, awaiting `/gsd-plan-phase`.
+v1.1 "Conversion, Traffic & Trust" kicked off 2026-04-24. 6 phases drafted in ROADMAP.md (6-11): Funnel Analytics, Country SEO Pages, AI Finder v2, Trust Layer, Mobile App, Paid Acquisition. Open questions for Sam logged in ROADMAP.md. Run `/gsd-plan-phase 6` next.
 
 ## Completed Milestones
 
@@ -43,10 +41,10 @@ Phases 6–12 all at CONTEXT.md stage, awaiting `/gsd-plan-phase`.
 
 ## Blockers
 
-_None blocking Phase 6. Phase 8 depends on Bjorn Schipper (plusonelegal.nl) availability; Phase 11 depends on Sam producing HK corporate docs for Meta review._
+_None blocking Phase 6. Open questions for Sam in ROADMAP.md must be answered before Phase 7+ planning._
 
 ## Recent Decisions
 
-- v1.1 milestone drafted 2026-04-24 covering 7 phases (6–12).
-- v1.0 addendum file created to codify out-of-band work without rewriting v1.0 scope.
+- v1.1 milestone kicked off 2026-04-24 covering 6 phases (6–11): Conversion, Traffic & Trust.
+- v1.0 addendum file codifies out-of-band work without rewriting v1.0 scope.
 - eSIM provider consolidation: dropped Airalo + eSIM.travel paths, eSIMVault only.

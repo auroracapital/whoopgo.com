@@ -40,7 +40,7 @@ Make mobile data abroad effortless. Travelers scan a QR code and get connected i
 - No mobile app (referenced in FAQ + hero CTA) — deferred
 
 ### Next Milestone
-_Not yet defined. Run `/gsd-new-milestone` to plan v1.1._
+**v1.1 Conversion, Traffic & Trust** (Phases 6-11) — in planning. Turns the v1.0 storefront into a revenue machine: funnel analytics baseline, 100+ country SEO landing pages, AI Finder v2 (closer mode), trust/social-proof layer, mobile app (iOS + Android), and paid-acquisition readiness. See `.planning/ROADMAP.md`.
 
 ## Revenue Model
 

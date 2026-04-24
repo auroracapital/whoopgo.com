@@ -25,20 +25,18 @@ Out-of-band post-launch work executed between milestone archive (2026-04-22) and
 
 ---
 
-## v1.1 Post-Launch Trust & Consolidation (Executing, drafted 2026-04-24)
+## v1.1 Conversion, Traffic & Trust (In Planning — kicked off 2026-04-24)
 
-**Theme:** Turn launch-day scaffolding into production-grade, revenue-ready infrastructure. Close every "wired but not finished" gap from the v1.0 addendum.
+**Thesis:** Turn the v1.0 storefront into a revenue machine. Measure the funnel, earn organic traffic, close the AI-finder loop, ship the mobile app the FAQ already promises, stand up trust signals, get paid-ready.
 
-**Phases:**
+**Phases (6):**
+1. Phase 6 — Funnel Analytics & Baseline Dashboard
+2. Phase 7 — Country Landing Pages + Programmatic SEO (100+ pages)
+3. Phase 8 — AI Finder v2 (Closer Mode)
+4. Phase 9 — Trust & Social Proof Layer
+5. Phase 10 — Mobile App (Expo RN, iOS + Android)
+6. Phase 11 — Paid Acquisition Readiness
 
-- Phase 6 — Clerk Webhook → DB Persistence
-- Phase 7 — E2E Signup Smoke Suite (Google / Apple / Facebook via Playwright)
-- Phase 8 — Legal Review & Remove DRAFT Banners (Bjorn Schipper, HK entity)
-- Phase 9 — Apple Pay + Google Pay Native Checkout (Stripe Express Checkout Element)
-- Phase 10 — Transactional Email via Resend (welcome, receipt, referral)
-- Phase 11 — Facebook Business Verification + Live Mode
-- Phase 12 — Admin Dashboard (Orders + Users, Clerk-role-gated)
-
-**Status:** All phases at CONTEXT.md stage; no plans or implementation yet.
+**Exit criteria:** 10k organic sessions/mo, finder→checkout ≥8%, mobile app live, full funnel instrumented, 100 v1.1-attributed paying customers. See `.planning/ROADMAP.md` for detail + open questions.
 
 ---
