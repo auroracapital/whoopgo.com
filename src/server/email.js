@@ -177,7 +177,7 @@ export async function sendOrderReceipt(sendOrSender, maybeParams) {
   const subject = `Your WhoopGO! eSIM is ready — ${planName}`;
   const lpaLine = activationCode && activationCode.startsWith("LPA:")
     ? `Manual activation code: ${activationCode}\n`
-    : "";
+    : null;
 
   const text = [
     `Hey${firstName ? " " + firstName : ""},`,
@@ -185,10 +185,10 @@ export async function sendOrderReceipt(sendOrSender, maybeParams) {
     `Your ${planName} eSIM is provisioned and ready.`,
     "",
     `Plan:     ${planName}${planData ? " · " + planData : ""}${planDuration ? " · " + planDuration : ""}`,
-    country ? `Country:  ${country}` : "",
-    iccid ? `ICCID:    ${iccid}` : "",
-    priceStr ? `Paid:     ${priceStr}` : "",
-    sessionId ? `Order:    ${sessionId}` : "",
+    country ? `Country:  ${country}` : null,
+    iccid ? `ICCID:    ${iccid}` : null,
+    priceStr ? `Paid:     ${priceStr}` : null,
+    sessionId ? `Order:    ${sessionId}` : null,
     "",
     "Activate in 3 steps:",
     "1. Settings → Mobile/Cellular → Add eSIM",
