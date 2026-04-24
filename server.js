@@ -21,6 +21,26 @@ app.use("/api/webhooks/clerk", express.raw({ type: "application/json" }));
 
 app.use(express.json());
 
+// Apple Pay domain association (must be served at this exact path as text/plain).
+// Registered with Stripe via POST /v1/apple_pay/domains so Apple Pay renders in
+// Stripe Checkout on Safari. Route is declared BEFORE static + SPA catch-all.
+app.get(
+  "/.well-known/apple-developer-merchantid-domain-association",
+  (_req, res) => {
+    res.type("text/plain");
+    res.sendFile(
+      join(
+        __dirname,
+        "public",
+        ".well-known",
+        "apple-developer-merchantid-domain-association",
+      ),
+      // `.well-known` is a dotfile path; Express/send denies these by default.
+      { dotfiles: "allow" },
+    );
+  },
+);
+
 // Serve static Vite build
 app.use(express.static(join(__dirname, "dist")));
 
@@ -148,7 +168,13 @@ app.post("/api/checkout", async (req, res) => {
     }
 
     const sessionParams = {
-      payment_method_types: ["card"],
+      // Omit payment_method_types so Stripe Checkout auto-includes all
+      // enabled methods from the Dashboard — this is how Apple Pay and
+      // Google Pay render as wallet buttons on top of `card`. They are
+      // NOT separate payment_method_types values. Requires:
+      //   1. "Apple Pay" + "Google Pay" toggled ON in Dashboard → Payments
+      //   2. Apple Pay domain verification via POST /v1/apple_pay/domains
+      //      (file served at /.well-known/apple-developer-merchantid-domain-association)
       mode: "payment",
       line_items: [
         {
