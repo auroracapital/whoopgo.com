@@ -207,7 +207,7 @@ app.post("/api/webhooks/stripe", async (req, res) => {
     const { planId, planName, data, duration, country, userId } =
       session.metadata ?? {};
 
-    // Persist order
+    // Persist order (amountTotalCents = actual charged; differs from catalog when coupons apply)
     const order = {
       sessionId: session.id,
       planId,
@@ -219,6 +219,9 @@ app.post("/api/webhooks/stripe", async (req, res) => {
       status: "provisioning",
       createdAt: new Date().toISOString(),
       qrCode: null,
+      ...(typeof session.amount_total === "number"
+        ? { amountTotalCents: session.amount_total }
+        : {}),
       ...(typeof userId === "string" && userId !== "" ? { userId } : {}),
     };
     orders.set(session.id, order);
@@ -265,7 +268,10 @@ async function provisionEsim(sessionId, order) {
           qrCode: qrData?.qrCode,
           iccid: qrData?.iccid,
           activationCode: qrData?.activationCode,
-          amountCents: PLANS[order.planId]?.price,
+          amountCents:
+            typeof order.amountTotalCents === "number"
+              ? order.amountTotalCents
+              : PLANS[order.planId]?.price,
           currency: "usd",
           sessionId,
         });
