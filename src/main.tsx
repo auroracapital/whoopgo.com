@@ -8,6 +8,7 @@ import { CheckoutCancel } from './pages/CheckoutCancel.tsx'
 import { AccountPage } from './pages/AccountPage.tsx'
 import { TermsOfService } from './pages/TermsOfService.tsx'
 import { PrivacyPolicy } from './pages/PrivacyPolicy.tsx'
+import { DataDeletion } from './pages/DataDeletion.tsx'
 import { AuthProvider } from './lib/auth-provider.tsx'
 import { initAnalytics } from './lib/analytics.ts'
 
@@ -25,6 +26,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/account" element={<AccountPage />} />
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/data-deletion" element={<DataDeletion />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
