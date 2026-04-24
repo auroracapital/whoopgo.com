@@ -1036,7 +1036,7 @@ function Footer() {
           {[
             { title: "Product", links: [{ label: "Features", href: "#features" }, { label: "Pricing", href: "#pricing" }, { label: "Plan Finder", href: "#finder" }, { label: "FAQ", href: "#faq" }] },
             { title: "Company", links: [{ label: "About", href: "#" }, { label: "Blog", href: "#" }, { label: "Careers", href: "#" }, { label: "Contact", href: "#contact" }] },
-            { title: "Legal", links: [{ label: "Privacy", href: "/privacy" }, { label: "Terms", href: "/terms" }, { label: "Refund Policy", href: "/terms" }] },
+            { title: "Legal", links: [{ label: "Privacy", href: "/privacy" }, { label: "Terms", href: "/terms" }, { label: "Refund Policy", href: "/terms#refunds" }] },
           ].map((group) => (
             <div key={group.title}>
               <h3 className="font-bold mb-4 text-sm tracking-wider uppercase text-foreground/80">{group.title}</h3>
