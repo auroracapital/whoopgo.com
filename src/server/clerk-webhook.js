@@ -15,6 +15,7 @@ import {
   updateUser as defaultUpdate,
   softDeleteUser as defaultSoftDelete,
 } from "./users-repo.js";
+import { sendWelcomeEmail as defaultSendWelcomeEmail } from "./email.js";
 
 /**
  * Build an Express-style request handler for Clerk webhooks.
@@ -24,6 +25,7 @@ import {
  * @param {(secret: string) => { verify: (body: Buffer | string, headers: Record<string, unknown>) => unknown }} [opts.verifierFactory]
  * @param {{ log: (...args: unknown[]) => void, error: (...args: unknown[]) => void }} [opts.logger]
  * @param {{ upsertUser?: Function, updateUser?: Function, softDeleteUser?: Function }} [opts.repo]
+ * @param {{ sendWelcomeEmail?: Function }} [opts.email]
  */
 export function createClerkWebhookHandler(opts = {}) {
   const {
@@ -31,11 +33,13 @@ export function createClerkWebhookHandler(opts = {}) {
     verifierFactory,
     logger = console,
     repo = {},
+    email = {},
   } = opts;
 
   const upsertUser = repo.upsertUser ?? defaultUpsert;
   const updateUser = repo.updateUser ?? defaultUpdate;
   const softDeleteUser = repo.softDeleteUser ?? defaultSoftDelete;
+  const sendWelcomeEmail = email.sendWelcomeEmail ?? defaultSendWelcomeEmail;
 
   return async function clerkWebhookHandler(req, res) {
     const secret = getSecret();
@@ -76,6 +80,14 @@ export function createClerkWebhookHandler(opts = {}) {
           logger.log(
             `Clerk user.created persisted: ${data?.id} ${data?.email_addresses?.[0]?.email_address ?? ""}`
           );
+          // Fire welcome email asynchronously — never block the webhook 200.
+          // Failures must not prevent Clerk from considering the event delivered.
+          Promise.resolve()
+            .then(() => sendWelcomeEmail(data))
+            .then((r) => {
+              if (r && !r.skipped) logger.log(`Welcome email sent: ${data?.id} msg=${r.id ?? ""}`);
+            })
+            .catch((err) => logger.error(`Welcome email failed for ${data?.id}:`, err));
           break;
         case "user.updated":
           await updateUser(data);
