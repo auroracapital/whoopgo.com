@@ -49,7 +49,8 @@ export function TermsOfService() {
               WhoopGO! is a service of Lifecycle Innovations Limited, a company
               incorporated in the Hong Kong Special Administrative Region of the
               People&rsquo;s Republic of China (the &ldquo;Company&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;). Our
-              registered office is &lt;HK address TBD&gt;, Hong Kong SAR. You can contact us at{" "}
+              registered office is 8/F, 299QRC, 287-299 Queen&rsquo;s Road Central,
+              Hong Kong (Business Registration Number (BRN): 76545088). You can contact us at{" "}
               <a className="text-[#E67E3C] hover:underline" href="mailto:support@whoopgo.app">support@whoopgo.app</a>.
             </p>
           </section>

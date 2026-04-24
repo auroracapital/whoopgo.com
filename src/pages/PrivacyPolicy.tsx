@@ -43,7 +43,8 @@ export function PrivacyPolicy() {
               (&ldquo;PDPO&rdquo;) we are the data user, and for the purposes of the EU General Data
               Protection Regulation (&ldquo;GDPR&rdquo;) we are the data controller for personal data
               processed through our website, mobile application, and services. Registered
-              office: &lt;HK address TBD&gt;, Hong Kong SAR. Contact:{" "}
+              office: 8/F, 299QRC, 287-299 Queen&rsquo;s Road Central, Hong Kong. Business
+              Registration Number (BRN): 76545088. Contact:{" "}
               <a className="text-[#E67E3C] hover:underline" href="mailto:support@whoopgo.app">
                 support@whoopgo.app
               </a>
