@@ -204,7 +204,7 @@ export async function sendOrderReceipt(sendOrSender, maybeParams) {
   const qrBlock = qrCode
     ? `<div style="background:${BRAND.bgSoft};border-radius:12px;padding:24px;text-align:center;margin:24px 0;">
          <p style="margin:0 0 12px;font-size:14px;color:${BRAND.muted};font-weight:600;">Scan to activate</p>
-         <img src="${qrCode}" alt="eSIM QR code" width="220" style="display:block;margin:0 auto;border-radius:8px;" />
+         <img src="${escapeHtml(qrCode)}" alt="eSIM QR code" width="220" style="display:block;margin:0 auto;border-radius:8px;" />
          ${iccid ? `<p style="font-size:11px;color:${BRAND.subtle};margin:12px 0 0;">ICCID: ${escapeHtml(iccid)}</p>` : ""}
          ${activationCode && activationCode.startsWith("LPA:") ? `<p style="font-size:11px;color:${BRAND.subtle};margin:6px 0 0;word-break:break-all;">Manual: ${escapeHtml(activationCode)}</p>` : ""}
        </div>`
