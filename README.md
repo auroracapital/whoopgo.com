@@ -12,6 +12,14 @@ Instant eSIM plans for travelers. Buy, activate, and connect worldwide — no ph
 - **Auth**: Clerk (magic link + Google OAuth)
 - **Deploy**: Render (web service)
 
+## Canonical Domain
+
+**`https://whoopgo.app`** is the canonical production domain (wired 2026-04-24).
+`whoopgo.com` is still owned by us and 301-redirects to `whoopgo.app`.
+
+Set `BASE_URL=https://whoopgo.app` in the Render service env so Stripe checkout
+URLs, magic links, and email `From:` addresses resolve to the canonical host.
+
 ## Getting Started
 
 ```bash
