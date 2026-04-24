@@ -236,57 +236,19 @@ app.post("/api/webhooks/clerk", createClerkWebhookHandler());
 
 // ─── eSIM Provider Abstraction ────────────────────────────────────────────────
 
-/**
- * Select which eSIM provider to use for a given order.
- *
- * Strategy (in priority order):
- *  1. Env override: ESIM_PROVIDER=airalo|esimmcp forces a specific provider.
- *  2. Plan-level mapping: ESIMMCP_PLAN_IDS env var (comma-separated plan IDs)
- *     routes those plans to eSIMVault; everything else goes to Airalo.
- *  3. Fallback: If eSIMVault credentials are present but Airalo credentials
- *     are not, use eSIMVault (and vice versa).
- *  4. Default: Airalo.
- *
- * @param {object} order
- * @returns {"airalo"|"esimmcp"}
- */
-function selectProvider(order) {
-  const forced = process.env.ESIM_PROVIDER?.toLowerCase();
-  if (forced === "airalo" || forced === "esimmcp") return forced;
-
-  const esimmcpPlanIds = (process.env.ESIMMCP_PLAN_IDS ?? "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-
-  if (esimmcpPlanIds.length > 0 && esimmcpPlanIds.includes(order.planId)) {
-    return "esimmcp";
-  }
-
-  const hasAiralo  = !!process.env.AIRALO_CLIENT_ID;
-  const hasEsimmcp = !!process.env.ESIMMCP_API_URL && !!process.env.ESIMMCP_API_TOKEN;
-
-  if (hasEsimmcp && !hasAiralo) return "esimmcp";
-  return "airalo";
-}
-
 // ─── eSIM Provisioning ────────────────────────────────────────────────────────
+// All eSIM provisioning flows through eSIMVault (the "esimmcp" provider).
+// Airalo direct integration was removed 2026-04-24 — consolidated upstream.
 async function provisionEsim(sessionId, order) {
   try {
-    const provider = selectProvider(order);
-    console.log(`Provisioning via ${provider}: ${sessionId}`);
+    console.log(`Provisioning via esimmcp: ${sessionId}`);
 
-    let qrData;
-    if (provider === "esimmcp") {
-      qrData = await callEsimmcpApi(order);
-    } else {
-      qrData = await callAiraloApi(order);
-    }
+    const qrData = await callEsimmcpApi(order);
 
     orders.set(sessionId, {
       ...order,
       status: "ready",
-      provider,
+      provider: "esimmcp",
       qrCode: qrData?.qrCode ?? null,
       iccid: qrData?.iccid ?? null,
       activationCode: qrData?.activationCode ?? null,
@@ -405,93 +367,7 @@ app.post("/api/auth/signout", (_req, res) => {
   res.json({ ok: true });
 });
 
-// ─── Airalo API Integration ───────────────────────────────────────────────────
-async function getAiraloToken() {
-  const clientId = process.env.AIRALO_CLIENT_ID;
-  const clientSecret = process.env.AIRALO_CLIENT_SECRET;
-  const env = process.env.AIRALO_API_ENV ?? "sandbox";
-  const baseUrl = env === "production"
-    ? "https://www.airalo.com/api/v2"
-    : "https://sandbox-partners-api.airalo.com/v2";
-
-  if (!clientId || !clientSecret) throw new Error("Airalo credentials not configured");
-
-  const res = await fetch(`${baseUrl}/token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({
-      client_id: clientId,
-      client_secret: clientSecret,
-      grant_type: "client_credentials",
-    }),
-  });
-
-  if (!res.ok) throw new Error(`Airalo auth failed: ${res.status}`);
-  const data = await res.json();
-  return { token: data.data?.access_token, baseUrl };
-}
-
-// Map internal plan IDs to Airalo package slugs
-const AIRALO_PACKAGE_MAP = {
-  "us-1gb-7d":        "united-states-1gb-7days",
-  "us-3gb-15d":       "united-states-3gb-15days",
-  "us-5gb-30d":       "united-states-5gb-30days",
-  "us-10gb-30d":      "united-states-10gb-30days",
-  "eu-5gb-7d":        "europe-5gb-7days",
-  "eu-10gb-15d":      "europe-10gb-15days",
-  "eu-unlimited-30d": "europe-unlimited-30days",
-  "apac-5gb-7d":      "asia-5gb-7days",
-  "global-10gb-30d":  "global-10gb-30days",
-};
-
-async function callAiraloApi(order) {
-  if (!process.env.AIRALO_CLIENT_ID) {
-    // No Airalo credentials — return a placeholder QR for dev/test
-    console.warn("Airalo not configured — using placeholder QR");
-    return {
-      qrCode: "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=WHOOPGO_TEST_ESIM",
-      iccid: "TEST_ICCID_" + Math.random().toString(36).slice(2, 10).toUpperCase(),
-    };
-  }
-
-  const { token, baseUrl } = await getAiraloToken();
-  const packageSlug = AIRALO_PACKAGE_MAP[order.planId];
-
-  if (!packageSlug) throw new Error(`No Airalo package mapping for plan: ${order.planId}`);
-
-  // Create order
-  const orderRes = await fetch(`${baseUrl}/orders`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify({
-      package_id: packageSlug,
-      quantity: 1,
-      type: "sim",
-    }),
-  });
-
-  if (!orderRes.ok) {
-    const body = await orderRes.text();
-    throw new Error(`Airalo order failed (${orderRes.status}): ${body}`);
-  }
-
-  const orderData = await orderRes.json();
-  const sim = orderData.data?.sims?.[0];
-
-  if (!sim) throw new Error("No SIM data in Airalo response");
-
-  return {
-    qrCode: sim.qrcode_url ?? sim.qrcode,
-    iccid: sim.iccid,
-    activationCode: sim.activation_code,
-  };
-}
-
-// ─── eSIMVault (esimmcp.com) API Integration ──────────────────────────────────
+// ─── eSIMVault (esimmcp) API Integration — single upstream provider ───────────
 //
 // eSIMVault is a B2B OCS (Online Charging System) platform.
 // It manages a pre-provisioned inventory of eSIMs ("subscribers") belonging
