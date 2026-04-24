@@ -120,9 +120,9 @@ export function TermsOfService() {
               Ordinance (Cap. 362)).
             </p>
             <p className="leading-relaxed">
-              If your eSIM does not work due to a technical issue on our side, contact
-              support@whoopgo.app within 30 days of purchase and we will work in good faith
-              to provide a replacement or refund.
+              If your eSIM does not work due to a technical issue on our side, contact{" "}
+              <a className="text-[#E67E3C] hover:underline" href="mailto:support@whoopgo.app">support@whoopgo.app</a>{" "}
+              within 30 days of purchase and we will work in good faith to provide a replacement or refund.
             </p>
           </section>
 
