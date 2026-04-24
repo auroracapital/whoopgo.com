@@ -1,47 +1,52 @@
 ---
 gsd_state_version: 1.0
-milestone: none
-milestone_name: (planning next milestone)
-status: milestone_complete
-last_updated: "2026-04-23T07:47:38.641Z"
-last_activity: "v1.0 milestone archived 2026-04-22"
+milestone: v1.1
+milestone_name: "v1.1 Post-Launch Trust & Consolidation"
+status: executing
+last_updated: "2026-04-24T00:00:00.000Z"
+last_activity: "v1.1 milestone drafted; v1.0 addendum codified"
 progress:
-  total_phases: 5
-  completed_phases: 5
+  total_phases: 7
+  completed_phases: 0
   total_plans: 0
   completed_plans: 0
 shipped_milestones:
   - version: v1.0
     name: Launch-Ready eSIM Storefront
     shipped: 2026-04-16
+  - version: v1.0-addendum
+    name: Domain, SSO wiring, legal scaffolding, provider consolidation
+    shipped: 2026-04-24
 ---
 
 # Project State
 
-## Current Phase: v1.0 archived — awaiting next milestone
+## Current Milestone: v1.1 Post-Launch Trust & Consolidation
 
-v1.0 shipped 2026-04-16 (PR #6 + PR #7). All 5 phases + eSIMVault integration complete. Run `/gsd-new-milestone` to define v1.1.
+Close the gaps left open by the 2026-04-24 out-of-band work: Clerk webhook persistence, real SSO coverage, counsel-reviewed legal pages, native-wallet checkout, branded transactional email, Facebook live mode, and an in-app admin console.
+
+Phases 6–12 all at CONTEXT.md stage, awaiting `/gsd-plan-phase`.
 
 ## Completed Milestones
 
-- **Phase 1 — Foundation & Quality**: Project scaffold, CI/CD, Render deploy pipeline — DONE
-- **Phase 2 — Checkout & Payments**: Stripe checkout, order flow, email confirmation — DONE
-- **Phase 3 — eSIM Provisioning**: eSIM.travel API integration, QR code delivery — DONE
-- **Phase 4 — User Accounts**: Auth, order history, account management — DONE
-- **Phase 5 — Growth & Retention**: Referrals, analytics, SEO, retention flows — DONE
-- **eSIMVault Integration**: esimmcp.com added as second eSIM provider with provider abstraction layer (PR #7, merged 2026-04-16) — DONE
+- **v1.0 Launch-Ready eSIM Storefront** (2026-04-16) — Phases 1-5 shipped.
+- **v1.0 Addendum** (2026-04-24) — Domain `whoopgo.app` canonical, Cloudflare DNS/SSL/Email Routing, Clerk webhook + Google/Apple/Facebook SSO wired, Gemini 3.1 Flash-Lite replaces Anthropic for `/api/chat`, Terms + Privacy pages (DRAFT under HK entity), `support@whoopgo.app` routing, single-upstream eSIM provisioning (eSIMVault), contact info + Render env hygiene. Details in `milestones/v1.0-addendum-2026-04-24.md`.
 
 ## Architecture
 
-- Primary provider: eSIM.travel
-- Secondary provider: eSIMVault (esimmcp.com) via esimmcp MCP
-- Provider selection abstraction in `server.js`
+- **Domain**: `whoopgo.app` canonical; `whoopgo.com` 301 redirect.
+- **Auth**: Clerk (Google + Apple + Facebook SSO). FB in Development mode — Phase 11 flips to Live.
+- **eSIM provisioning**: single upstream — eSIMVault via `esimmcp`.
+- **AI chat**: Gemini 3.1 Flash-Lite via `/api/chat`.
+- **Payments**: Stripe Checkout (native wallets added in Phase 9).
+- **Email**: Cloudflare routing inbound; Resend outbound in Phase 10.
 
 ## Blockers
 
-_None_
+_None blocking Phase 6. Phase 8 depends on Bjorn Schipper (plusonelegal.nl) availability; Phase 11 depends on Sam producing HK corporate docs for Meta review._
 
 ## Recent Decisions
 
-- Merged PR #7 (feature/esimmcp-provider) with admin override after rebase — 2026-04-16
-- eSIMVault added as fallback/alternative provider to reduce single-provider dependency
+- v1.1 milestone drafted 2026-04-24 covering 7 phases (6–12).
+- v1.0 addendum file created to codify out-of-band work without rewriting v1.0 scope.
+- eSIM provider consolidation: dropped Airalo + eSIM.travel paths, eSIMVault only.
