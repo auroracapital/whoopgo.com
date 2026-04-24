@@ -7,7 +7,6 @@ import {
   Check,
   ChevronDown,
   Mail,
-  Phone,
   MapPin,
   Globe2,
   MessageCircle,
@@ -908,7 +907,7 @@ function ContactSection() {
       setSent(true);
       setName(""); setEmail(""); setMessage("");
     } catch {
-      setContactError("Failed to send — please email us directly at support@whoopgo.com");
+      setContactError("Failed to send — please email us directly at support@whoopgo.app");
     } finally {
       setSending(false);
     }
@@ -931,9 +930,8 @@ function ContactSection() {
 
               <div className="space-y-6">
                 {[
-                  { icon: Mail, label: "Email", value: "support@whoopgo.com", href: "mailto:support@whoopgo.com" },
-                  { icon: Phone, label: "Phone", value: "+44 123 456 7890", href: "tel:+441234567890" },
-                  { icon: MapPin, label: "Office", value: "Amsterdam, Netherlands" },
+                  { icon: Mail, label: "Email", value: "support@whoopgo.app", href: "mailto:support@whoopgo.app" },
+                  { icon: MapPin, label: "Office", value: "Hong Kong SAR" },
                 ].map((item, i) => (
                   <motion.div
                     key={i}
