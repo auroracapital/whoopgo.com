@@ -1,6 +1,6 @@
 # STRUCTURE
 
-Repo root: `/Users/samrenders/Projects/whoopgo.com`. Flat layout — frontend in `src/`, backend in one `server.js`, shared plan catalog duplicated client/server.
+Repo root: the repository root (clone this repo locally). Flat layout — frontend in `src/`, backend in one `server.js`, shared plan catalog duplicated client/server.
 
 ## Top-level
 

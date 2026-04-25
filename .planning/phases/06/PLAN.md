@@ -18,14 +18,14 @@ Instrument PostHog across the full conversion funnel (landing → finder → che
 - `src/App.tsx` — wire `plan_selected` on pricing section `<CheckoutButton>` clicks (currently fires `checkout_started` only; `plan_selected` is defined but uncalled)
 - `src/pages/CheckoutSuccess.tsx` — fire `checkout_completed` + `qr_delivered` on order load
 - `src/pages/AccountPage.tsx` — wire `signed_in` / `signed_up` via Clerk `useUser` hook
-- `server.js` — add `posthog-node` client; fire `esim_provisioned` in eSIM provisioning handler; fire `qr_delivered` when QR is emailed; update `VITE_POSTHOG_HOST` env comment to EU
-- `src/App.tsx` — add `/admin/metrics` route (lazy-loaded, `requireAdmin` guard)
+- `server.js` — add `posthog-node` client; fire `esim_provisioned` in eSIM provisioning handler; fire `qr_delivered` when QR is emailed; update `VITE_POSTHOG_HOST` env comment to EU; add `GET /api/admin/orders` (or similar) that verifies the user’s Clerk session JWT with `@clerk/backend` and checks an admin role/claim — **not** the existing `requireAdmin` bearer (`ADMIN_API_TOKEN`) middleware, which is for server-to-server or curl only and must never be exposed via `VITE_*` or bundled in the browser
+- `src/App.tsx` — add `/admin/metrics` route (lazy-loaded, **client-side** Clerk admin guard — do not confuse with Express `requireAdmin` on `/api/orders`)
 - `.env.example` — add `POSTHOG_API_KEY` (server-side, secret), `POSTHOG_HOST` (server env var, separate from `VITE_` one)
-- `package.json` — add `posthog-node` dependency
+- `package.json` — add `posthog-node` and `@clerk/backend` (for JWT verification on `/api/admin/orders`)
 
 ### Read-only reference (no changes)
 - `src/lib/stripe.ts` — understand Plan type for event properties
-- `server.js` `requireAdmin` — understand auth pattern for metrics route guard
+- `server.js` `requireAdmin` on `/api/orders` — bearer-token admin API for scripts/ops only; the metrics page must use a separate Clerk-JWT route (see Task 4)
 
 ---
 
@@ -56,9 +56,10 @@ Wire all missing frontend events defined in `analytics.ts` but not called:
 
 ### Task 4 — `/admin/metrics` dashboard page (3–4 hr)
 - Create `src/pages/AdminMetrics.tsx`: React page with Clerk auth guard (redirect to `/account` if not admin)
-- KPI cards row: Total Orders (from `/api/orders`), Revenue (sum of order prices), Conversion Rate placeholder (finder_opened → checkout_completed, computed from PostHog API)
+- KPI cards row: Total Orders (from the Clerk-protected admin orders API below), Revenue (sum of order prices), Conversion Rate placeholder (finder_opened → checkout_completed, computed from PostHog API)
 - PostHog dashboard embed: use PostHog's [Dashboard embed](https://posthog.com/docs/product-analytics/dashboards#embed-a-dashboard) iframe with `?embedded=true` — requires `VITE_POSTHOG_DASHBOARD_ID` env var pointing to a manually-created PostHog dashboard
-- Recent orders table: fetch from `/api/orders`, show last 20 with plan, country, status, timestamp
+- **Orders data from the browser:** add `GET /api/admin/orders` in `server.js` that accepts `Authorization: Bearer <Clerk session JWT>` (from `useAuth().getToken()` on the client), verifies it with `@clerk/backend` `verifyToken`, checks admin (public metadata / org role — same rule as the React guard), returns the same order list shape as `/api/orders` but capped (e.g. last 20). **Do not** call `/api/orders` from the React app: that route uses `requireAdmin` + `ADMIN_API_TOKEN`, which is server-only; putting that token in `VITE_*` would leak it in the JS bundle.
+- Recent orders table: fetch from `/api/admin/orders` (with Clerk bearer), show last 20 with plan, country, status, timestamp
 - Add `/admin/metrics` route in `App.tsx` router (lazy import, wrapped in admin guard component)
 - Add link in account page for admin users
 
