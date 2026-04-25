@@ -10,7 +10,7 @@ Instrument PostHog across the full conversion funnel (landing → finder → che
 
 ### New files
 - `src/pages/AdminMetrics.tsx` — `/admin/metrics` dashboard page
-- `src/lib/posthog-node.ts` — thin wrapper around `posthog-node` for server-side calls (imported by server.js)
+- `src/lib/posthog-node.js` — thin wrapper around `posthog-node` for server-side calls (imported by server.js; plain ESM `.js` like `src/server/clerk-webhook.js`, not `.ts`, because `node server.js` does not load TypeScript)
 
 ### Modified files
 - `src/lib/analytics.ts` — add `finderOpened`, `finderMessageSent`, `planRecommended` events; add `ip: false` to init options
@@ -49,7 +49,7 @@ Wire all missing frontend events defined in `analytics.ts` but not called:
 
 ### Task 3 — Server-side event tracking via posthog-node (2–3 hr)
 - `npm install posthog-node`
-- Create `src/lib/posthog-node.ts`: exports `captureServerEvent(distinctId, event, properties)` using `posthog-node` PostHog client; reads `POSTHOG_API_KEY` + `POSTHOG_HOST` from `process.env`; gracefully no-ops if key absent
+- Create `src/lib/posthog-node.js`: exports `captureServerEvent(distinctId, event, properties)` using `posthog-node` PostHog client; reads `POSTHOG_API_KEY` + `POSTHOG_HOST` from `process.env`; gracefully no-ops if key absent
 - In `server.js` eSIM provisioning block (after successful provider response): call `captureServerEvent(userId || sessionId, 'esim_provisioned', { order_id, provider, latency_ms })`
 - In `server.js` email dispatch block (after QR email sent): call `captureServerEvent(userId || sessionId, 'qr_delivered', { order_id, delivery_method: 'email' })`
 - In `server.js` Stripe webhook `checkout.session.completed` handler: call `captureServerEvent` for `checkout_completed` as server-side backup (deduplication handled by PostHog via same `session_id` property)
