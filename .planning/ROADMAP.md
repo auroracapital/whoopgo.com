@@ -4,7 +4,7 @@
 
 - ✅ **v1.0 Launch-Ready eSIM Storefront** — Phases 1-5 (shipped 2026-04-16) — see `milestones/v1.0-ROADMAP.md`
 - ✅ **v1.0 Addendum** — Domain, SSO wiring, legal scaffolding, provider consolidation (2026-04-24) — see `milestones/v1.0-addendum-2026-04-24.md`
-- 🚧 **v1.1 Post-Launch Trust, Auth & Consolidation** — Phases 6-12 (executing)
+- 🎯 **v1.1 Conversion, Traffic & Trust** — Phases 6-11 (in planning)
 
 ## Phases
 
@@ -19,31 +19,42 @@
 
 </details>
 
-### 🚧 v1.1 Post-Launch Trust, Auth & Consolidation
+### 🎯 v1.1 Conversion, Traffic & Trust (Phases 6-11)
 
-Theme: Turn the launch-day scaffolding (SSO wiring, draft legal pages, single provider) into production-grade, revenue-ready infrastructure. Close every "we wired it but didn't finish it" gap from the 2026-04-24 out-of-band work.
+**Thesis.** v1.0 shipped a functional storefront but zero measured demand. v1.1 turns it into a revenue machine: rank for high-intent travel-eSIM keywords, convert the traffic with a sharper AI finder + country-specific landing pages, close the mobile-app gap the FAQ already promises, and instrument every step so we know what's working.
 
-- [ ] **Phase 6 — Clerk Webhook → DB Persistence**
-  - Persist `user.created/updated/deleted` into a `users` table; link orders via `user_id` FK.
-  - Success: every Clerk user has a matching DB row; webhook is idempotent under Svix replay.
-- [ ] **Phase 7 — E2E Signup Smoke Suite**
-  - Playwright specs for Google, Apple, Facebook SSO, running monthly on a cron and on-demand.
-  - Success: green run against staging with real provider accounts; alerts on failure.
-- [ ] **Phase 8 — Legal Review & Remove DRAFT Banners**
-  - Engage Bjorn Schipper (plusonelegal.nl) for counsel review under HK entity (Lifecycle Innovations Limited, BRN 76545088). Adapt fiberwifi brief template.
-  - Success: signed-off Terms + Privacy; DRAFT banners removed; `last_reviewed` stamp added.
-- [ ] **Phase 9 — Apple Pay + Google Pay Native Checkout**
-  - Stripe Payment Request / Express Checkout Element on product page; fallback to existing Checkout.
-  - Success: mobile wallets complete full order flow end-to-end, including provisioning + receipt.
-- [ ] **Phase 10 — Transactional Email via Resend**
-  - Welcome (Clerk `user.created`), receipt + eSIM-ready (Stripe webhook), referral invite/reward. React Email templates. SPF/DKIM/DMARC green.
-  - Success: no duplicate sends on webhook retry; audit log in `email_events`.
-- [ ] **Phase 11 — Facebook Business Verification + Live Mode**
-  - Meta Business Verification under HK entity, App Review for `public_profile` + `email`, flip app to Live.
-  - Success: brand-new personal FB account can complete login; Phase 7 FB spec passes.
-- [ ] **Phase 12 — Admin Dashboard (Orders + Users)**
-  - In-app `/admin/*` console, Clerk-role-gated. Orders table, users table, email-events log, audit trail for admin actions.
-  - Success: Sam + Abeeha triage without psql / Stripe Dashboard / Clerk Dashboard.
+**Success metrics (exit criteria):**
+- ≥ 10k organic sessions/month from country-specific landing pages
+- AI Finder → Stripe checkout conversion ≥ 8% (vs current unknown baseline)
+- Mobile app (iOS + Android) live in stores with eSIM install flow
+- Full funnel analytics: session → finder → checkout → activation → renewal
+- First 100 paying customers acquired through v1.1 channels (excluding v1.0 referrals)
+
+**Phases:**
+
+- [ ] **Phase 6 — Funnel Analytics & Baseline Dashboard**
+  Instrument GA4 + PostHog across landing → finder → checkout → activation → renewal. Ship an internal `/admin/metrics` dashboard so every subsequent phase is measured against a known baseline. Prerequisite for every growth phase below.
+
+- [ ] **Phase 7 — Country Landing Pages + Programmatic SEO**
+  Generate 100+ country/regional landing pages (`/esim/japan`, `/esim/europe`, etc.) with unique copy, local pricing, travel-context hooks, and schema.org markup. Sitemap, canonical tags, internal linking, og-images per country. Target long-tail "eSIM {country}" queries.
+
+- [ ] **Phase 8 — AI Finder v2 (Closer Mode)**
+  Upgrade the Gemini finder from recommender to closer: multi-turn memory, destination+duration extraction, one-tap "Buy now" CTA inside the chat, abandonment-recovery email, A/B tested prompt variants. Target ≥8% chat→checkout.
+
+- [ ] **Phase 9 — Trust & Social Proof Layer**
+  Real review collection (post-activation NPS), Trustpilot widget, verified-buyer testimonials, press/partner logos, live activation counter, refund guarantee banner. Reduce first-purchase friction.
+
+- [ ] **Phase 10 — Mobile App (Expo RN)**
+  Ship the iOS + Android app already promised in the FAQ/hero. Native eSIM install (iOS 17.4+ direct-install API), push notifications for activation + low-data, biometric account access, plan renewal one-tap. TestFlight → production submission.
+
+- [ ] **Phase 11 — Paid Acquisition Readiness**
+  Pixel + conversion API setup (Meta, Google, TikTok), UTM taxonomy, landing page variants for paid traffic, LTV/CAC dashboard, affiliate program v1. Gate: only run paid after Phase 6 baseline + Phase 9 trust layer shipped.
+
+**Open questions for Sam (needs input before Phase 6 kickoff):**
+1. Paid-acquisition budget ceiling for v1.1 (affects Phase 11 scope — lean affiliate-only vs. funded Meta/Google test).
+2. Mobile app: Expo managed workflow (fast, cross-platform) or native Swift/Kotlin for iOS 17.4+ eSIM install APIs that may need native modules?
+3. Is there a target geography for the SEO push (EU-first, US-first, global) — impacts Phase 7 prioritisation and hreflang strategy.
+4. Does Lifecycle Innovations (HK) entity have the app-store developer accounts set up, or is that Phase 10 prerequisite work?
 
 ### Next Milestone
 
