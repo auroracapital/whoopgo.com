@@ -164,7 +164,7 @@ export function AdminMetrics() {
               </CardHeader>
               <CardContent className="p-0">
                 <iframe
-                  src={`${POSTHOG_HOST}/embedded/${POSTHOG_DASHBOARD_ID}?embedded=true`}
+                  src={`${POSTHOG_HOST}/embedded/dashboard/${POSTHOG_DASHBOARD_ID}?embedded=true`}
                   title="PostHog funnel dashboard"
                   className="w-full border-0"
                   style={{ height: 600 }}
