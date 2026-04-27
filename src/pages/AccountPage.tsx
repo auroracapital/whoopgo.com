@@ -1,17 +1,38 @@
+import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { User, Package, ArrowLeft, Trash2 } from "lucide-react";
+import { User, Package, ArrowLeft, Trash2, BarChart2 } from "lucide-react";
+import { useUser } from "@clerk/clerk-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth";
 import { AuthModal } from "@/components/AuthModal";
 import { OrderDashboard } from "@/components/OrderDashboard";
+import { events, identify } from "@/lib/analytics";
 
 const DELETION_MAILTO =
   "mailto:support@whoopgo.app?subject=Data%20Deletion%20Request%20%E2%80%94%20%3Cyour%20email%3E&body=Hi%20WhoopGO%21%20team%2C%0A%0AI%20would%20like%20to%20request%20full%20deletion%20of%20my%20account%20and%20associated%20personal%20data.%0A%0AAccount%20email%3A%20%3Cyour%20email%3E%0A%0AThanks.";
 
 export function AccountPage() {
   const { user, loading } = useAuth();
+  const { user: clerkUser } = useUser();
+  const isAdmin = (clerkUser?.publicMetadata as Record<string, unknown> | undefined)?.role === "admin";
+  const identifiedRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (user && identifiedRef.current !== user.id) {
+      identifiedRef.current = user.id;
+      identify(user.id, { email: user.email, name: user.name });
+      // Distinguish new vs returning: Clerk createdAt not exposed through our
+      // auth wrapper, so we use sessionStorage as a proxy — first visit this
+      // session = signed_in, already identified this session = skip.
+      const sessionKey = `whoopgo_identified_${user.id}`;
+      if (!sessionStorage.getItem(sessionKey)) {
+        sessionStorage.setItem(sessionKey, "1");
+        events.signedIn("clerk");
+      }
+    }
+  }, [user]);
 
   if (loading) {
     return (
@@ -67,6 +88,17 @@ export function AccountPage() {
             <h1 className="text-2xl font-black tracking-tighter">My Account</h1>
             <p className="text-muted-foreground text-sm">{user.email}</p>
           </div>
+          {isAdmin && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => (window.location.href = "/admin/metrics")}
+            >
+              <BarChart2 className="w-4 h-4" />
+              Admin Metrics
+            </Button>
+          )}
         </div>
 
         {/* Stats */}

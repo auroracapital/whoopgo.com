@@ -7,6 +7,8 @@ import { dirname, join } from "path";
 import { createHmac, timingSafeEqual } from "crypto";
 import { createClerkWebhookHandler } from "./src/server/clerk-webhook.js";
 import { sendOrderReceipt } from "./src/server/email.js";
+import { captureServerEvent } from "./src/lib/posthog-node.js";
+import { createClerkClient } from "@clerk/backend";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -60,6 +62,11 @@ const stripe = stripeKey ? new Stripe(stripeKey) : null;
 if (!stripe) console.warn("WARNING: STRIPE_SECRET_KEY not set — checkout will fail");
 
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+
+// Clerk backend client — used only for JWT verification on /api/admin/orders
+const clerkClient = process.env.CLERK_SECRET_KEY
+  ? createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY })
+  : null;
 
 // ─── Plan Catalog ─────────────────────────────────────────────────────────────
 const PLANS = {
@@ -254,6 +261,20 @@ app.post("/api/webhooks/stripe", async (req, res) => {
 
     console.log(`Order created: ${session.id} — ${planName} for ${order.email}`);
 
+    // Server-side checkout_completed backup (deduped in PostHog via session_id)
+    void captureServerEvent(
+      userId || session.id,
+      "checkout_completed",
+      {
+        session_id: session.id,
+        plan_id: planId,
+        plan_name: planName,
+        country,
+        amount_cents: session.amount_total ?? 0,
+        source: "stripe_webhook",
+      },
+    );
+
     // Trigger eSIM provisioning (async — don't block webhook response)
     void provisionEsim(session.id, order);
   }
@@ -284,6 +305,20 @@ async function provisionEsim(sessionId, order) {
       activationCode: qrData?.activationCode ?? null,
     });
 
+    // Track server-side esim_provisioned
+    void captureServerEvent(
+      order.userId || sessionId,
+      "esim_provisioned",
+      {
+        order_id: sessionId,
+        provider: "esimmcp",
+        plan_id: order.planId,
+        plan_name: order.planName,
+        country: order.country,
+        iccid: qrData?.iccid ?? null,
+      },
+    );
+
     // Send branded receipt + QR via Resend (Phase 10).
     if (order.email) {
       try {
@@ -301,6 +336,17 @@ async function provisionEsim(sessionId, order) {
           currency: "usd",
           sessionId,
         });
+
+        // Track qr_delivered after successful email dispatch
+        void captureServerEvent(
+          order.userId || sessionId,
+          "qr_delivered",
+          {
+            order_id: sessionId,
+            delivery_method: "email",
+            plan_id: order.planId,
+          },
+        );
       } catch (err) {
         console.error(`Order receipt email failed for ${sessionId}:`, err);
       }
@@ -383,6 +429,59 @@ app.get("/api/orders", requireAdmin, (req, res) => {
     : all;
 
   res.json(filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+});
+
+// ─── Admin orders — Clerk JWT authenticated (browser-safe) ───────────────────
+// Accepts Authorization: Bearer <Clerk session token> from the React app.
+// Do NOT use requireAdmin() here — that uses ADMIN_API_TOKEN which must never
+// be embedded in VITE_* env vars or the JS bundle.
+app.get("/api/admin/orders", async (req, res) => {
+  if (!clerkClient) {
+    return res.status(503).json({ error: "Clerk not configured" });
+  }
+
+  const header = req.headers.authorization ?? "";
+  const token = header.startsWith("Bearer ") ? header.slice(7) : null;
+  if (!token) return res.status(401).json({ error: "Missing token" });
+
+  let userId;
+  try {
+    const payload = await clerkClient.verifyToken(token);
+    userId = payload.sub;
+  } catch {
+    return res.status(401).json({ error: "Invalid token" });
+  }
+
+  // Check admin: Clerk public metadata { role: "admin" } or org membership.
+  let isAdmin = false;
+  try {
+    const clerkUser = await clerkClient.users.getUser(userId);
+    isAdmin = clerkUser.publicMetadata?.role === "admin";
+  } catch {
+    return res.status(500).json({ error: "Failed to verify role" });
+  }
+
+  if (!isAdmin) return res.status(403).json({ error: "Admin role required" });
+
+  const all = Array.from(orders.values())
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 20)
+    .map((o) => ({
+      sessionId: o.sessionId,
+      planName: o.planName,
+      country: o.country ?? "",
+      status: o.status,
+      amount: o.amountTotalCents ?? 0,
+      email: o.email,
+      createdAt: o.createdAt,
+    }));
+
+  const totalRevenueCents = Array.from(orders.values()).reduce(
+    (sum, o) => sum + (o.amountTotalCents ?? 0),
+    0,
+  );
+
+  res.json({ orders: all, total: orders.size, totalRevenueCents });
 });
 
 // ─── Auth Stubs (Phase 4) ─────────────────────────────────────────────────────

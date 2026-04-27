@@ -16,7 +16,7 @@ function getPosthog() {
 
 export function initAnalytics() {
   const key = import.meta.env.VITE_POSTHOG_KEY as string | undefined;
-  const host = (import.meta.env.VITE_POSTHOG_HOST as string | undefined) ?? "https://us.posthog.com";
+  const host = (import.meta.env.VITE_POSTHOG_HOST as string | undefined) ?? "https://eu.posthog.com";
 
   if (!key || !getPosthog()) return;
 
@@ -24,6 +24,7 @@ export function initAnalytics() {
     api_host: host,
     person_profiles: "identified_only",
     capture_pageview: true,
+    ip: false,
   });
 }
 
@@ -46,6 +47,9 @@ export const events = {
   checkoutCompleted: (sessionId: string, planId: string, price: number) =>
     track("checkout_completed", { session_id: sessionId, plan_id: planId, price }),
 
+  qrDelivered: (sessionId: string, orderId: string) =>
+    track("qr_delivered", { session_id: sessionId, order_id: orderId }),
+
   contactSubmitted: () =>
     track("contact_submitted"),
 
@@ -57,4 +61,13 @@ export const events = {
 
   signedUp: (method: string) =>
     track("signed_up", { method }),
+
+  finderOpened: () =>
+    track("finder_opened"),
+
+  finderMessageSent: (messageIndex: number, hasDestination: boolean) =>
+    track("finder_message_sent", { message_index: messageIndex, has_destination: hasDestination }),
+
+  planRecommended: (planId: string, planName: string, country: string, price: number) =>
+    track("plan_recommended", { plan_id: planId, plan_name: planName, country, price }),
 } as const;

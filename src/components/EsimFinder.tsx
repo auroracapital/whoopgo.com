@@ -4,6 +4,7 @@ import { Send, Sparkles } from "lucide-react";
 import Markdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { events } from "@/lib/analytics";
 
 interface Message {
   id: string;
@@ -20,11 +21,18 @@ const INITIAL_MESSAGE: Message = {
   timestamp: new Date(),
 };
 
+// Detect plan recommendations in AI responses.
+// Looks for patterns like "Tourist Plan", "Traveler Plan", "Explorer Plan" or
+// plan-id style strings (e.g. eu-10gb-15d) followed by a price.
+const PLAN_REGEX =
+  /\b(tourist|traveler|explorer|europe|global|asia|unlimited)[^.]*plan\b.*?\$(\d+(?:\.\d+)?)/i;
+
 export function EsimFinder() {
   const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const firedOpenRef = useRef(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({
@@ -36,6 +44,14 @@ export function EsimFinder() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isTyping]);
+
+  // Fire finder_opened once on mount
+  useEffect(() => {
+    if (!firedOpenRef.current) {
+      firedOpenRef.current = true;
+      events.finderOpened();
+    }
+  }, []);
 
   const handleSend = async () => {
     if (!input.trim() || isTyping) return;
@@ -49,6 +65,13 @@ export function EsimFinder() {
 
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
+
+    // Track message sent
+    const userMessageCount = updatedMessages.filter((m) => m.type === "user").length;
+    const destinationKeywords =
+      /\b(japan|europe|usa|uk|france|germany|italy|spain|asia|australia|canada|mexico|brazil|thailand|india)\b/i;
+    events.finderMessageSent(userMessageCount, destinationKeywords.test(input));
+
     setInput("");
     setIsTyping(true);
 
@@ -65,14 +88,31 @@ export function EsimFinder() {
       });
 
       const data = (await res.json()) as { content?: string };
+      const content =
+        data.content ?? "Sorry, I had trouble processing that. Could you try again?";
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: "ai",
-        content: data.content ?? "Sorry, I had trouble processing that. Could you try again?",
+        content,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMessage]);
+
+      // Fire plan_recommended if AI response contains a plan suggestion
+      const planMatch = PLAN_REGEX.exec(content);
+      if (planMatch) {
+        const planName =
+          planMatch[1].charAt(0).toUpperCase() + planMatch[1].slice(1).toLowerCase();
+        const price = parseFloat(planMatch[2]);
+        const allText = updatedMessages.map((m) => m.content).join(" ");
+        const countryMatch =
+          /\b(japan|europe|usa|us|uk|france|germany|italy|spain|asia|australia|canada|mexico|brazil|thailand|india)\b/i.exec(
+            allText,
+          );
+        const country = countryMatch ? countryMatch[1].toUpperCase() : "unknown";
+        events.planRecommended(`${planName.toLowerCase()}-recommended`, planName, country, price);
+      }
     } catch {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
