@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle, QrCode, Mail, ArrowRight, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { events } from "@/lib/analytics";
 
 interface OrderDetails {
   sessionId: string;
@@ -20,6 +21,7 @@ export function CheckoutSuccess() {
   const [order, setOrder] = useState<OrderDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const firedRef = useRef(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -37,6 +39,15 @@ export function CheckoutSuccess() {
         if (!res.ok) throw new Error("Order not found");
         const data = (await res.json()) as OrderDetails;
         setOrder(data);
+
+        // Fire funnel events once per page load
+        if (!firedRef.current) {
+          firedRef.current = true;
+          events.checkoutCompleted(sessionId, data.planName, 0);
+          if (data.qrCode ?? data.status === "ready") {
+            events.qrDelivered(sessionId, sessionId);
+          }
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load order");
       } finally {

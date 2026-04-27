@@ -35,6 +35,7 @@ import { CheckoutButton } from "@/components/CheckoutButton";
 import { AuthModal } from "@/components/AuthModal";
 import { useAuth } from "@/lib/auth";
 import { EmailCapture } from "@/components/EmailCapture";
+import { events } from "@/lib/analytics";
 
 // ─── Theme Hook ──────────────────────────────────────────────────────────────
 function useTheme() {
@@ -641,15 +642,21 @@ function PricingSection() {
                     ))}
                   </ul>
                   {plan.popular ? (
-                    <CheckoutButton
-                      plan={{ id: plan.id, name: plan.name, data: plan.data, duration: `${plan.days} days`, price: Math.round(plan.price * 100), description: plan.features[0] }}
-                      userId={user?.id}
-                      className="w-full rounded-xl bg-[#E67E3C] hover:bg-[#D86E2C] text-white"
-                    >
-                      Get Started — ${plan.price}
-                    </CheckoutButton>
+                    <div onClick={() => events.planSelected(plan.id, plan.name, Math.round(plan.price * 100))}>
+                      <CheckoutButton
+                        plan={{ id: plan.id, name: plan.name, data: plan.data, duration: `${plan.days} days`, price: Math.round(plan.price * 100), description: plan.features[0] }}
+                        userId={user?.id}
+                        className="w-full rounded-xl bg-[#E67E3C] hover:bg-[#D86E2C] text-white"
+                      >
+                        Get Started — ${plan.price}
+                      </CheckoutButton>
+                    </div>
                   ) : (
-                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => events.planSelected(plan.id, plan.name, Math.round(plan.price * 100))}
+                    >
                       <CheckoutButton
                         plan={{ id: plan.id, name: plan.name, data: plan.data, duration: `${plan.days} days`, price: Math.round(plan.price * 100), description: plan.features[0] }}
                         userId={user?.id}
