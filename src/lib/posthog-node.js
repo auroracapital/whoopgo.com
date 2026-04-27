@@ -37,7 +37,7 @@ export async function captureServerEvent(distinctId, event, properties = {}) {
     if (!client) return;
     client.capture({ distinctId, event, properties });
     // Flush immediately so events are not lost if process exits
-    await client.flushAsync();
+    await client.flush();
   } catch {
     // Never throw from analytics — silently swallow
   }
