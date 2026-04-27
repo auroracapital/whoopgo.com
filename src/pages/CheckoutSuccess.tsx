@@ -7,7 +7,9 @@ import { events } from "@/lib/analytics";
 
 interface OrderDetails {
   sessionId: string;
+  planId?: string;
   planName: string;
+  amountTotalCents?: number;
   data: string;
   duration: string;
   email: string;
@@ -43,8 +45,12 @@ export function CheckoutSuccess() {
         // Fire funnel events once per page load
         if (!firedRef.current) {
           firedRef.current = true;
-          events.checkoutCompleted(sessionId, data.planName, 0);
-          if (data.qrCode ?? data.status === "ready") {
+          events.checkoutCompleted(
+            sessionId,
+            data.planId ?? "",
+            data.amountTotalCents ?? 0,
+          );
+          if (data.qrCode || data.status === "ready") {
             events.qrDelivered(sessionId, sessionId);
           }
         }

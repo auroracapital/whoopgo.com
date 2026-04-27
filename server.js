@@ -471,13 +471,13 @@ app.get("/api/admin/orders", async (req, res) => {
       planName: o.planName,
       country: o.country ?? "",
       status: o.status,
-      amount: o.amount ?? 0,
+      amount: o.amountTotalCents ?? 0,
       email: o.email,
       createdAt: o.createdAt,
     }));
 
   const totalRevenueCents = Array.from(orders.values()).reduce(
-    (sum, o) => sum + (o.amount ?? 0),
+    (sum, o) => sum + (o.amountTotalCents ?? 0),
     0,
   );
 

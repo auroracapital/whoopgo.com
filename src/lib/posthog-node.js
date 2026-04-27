@@ -5,6 +5,7 @@
 
 // Lazy-init promise — resolves to a PostHog client or null.
 let _initPromise = null;
+let _client = null;
 
 async function init() {
   if (_initPromise) return _initPromise;
