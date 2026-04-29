@@ -20,19 +20,28 @@ export function AccountPage() {
   const identifiedRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (user && identifiedRef.current !== user.id) {
+    if (!user) return;
+
+    if (identifiedRef.current !== user.id) {
       identifiedRef.current = user.id;
       identify(user.id, { email: user.email, name: user.name });
-      // Distinguish new vs returning: Clerk createdAt not exposed through our
-      // auth wrapper, so we use sessionStorage as a proxy — first visit this
-      // session = signed_in, already identified this session = skip.
-      const sessionKey = `whoopgo_identified_${user.id}`;
-      if (!sessionStorage.getItem(sessionKey)) {
-        sessionStorage.setItem(sessionKey, "1");
-        events.signedIn("clerk");
-      }
     }
-  }, [user]);
+
+    const createdAt = clerkUser?.createdAt;
+    if (!createdAt) return;
+
+    const sessionKey = `whoopgo_auth_event_${user.id}`;
+    if (sessionStorage.getItem(sessionKey)) return;
+
+    sessionStorage.setItem(sessionKey, "1");
+    const createdMs = new Date(createdAt).getTime();
+    const isRecentSignup = Date.now() - createdMs < 10 * 60 * 1000;
+    if (isRecentSignup) {
+      events.signedUp("clerk");
+    } else {
+      events.signedIn("clerk");
+    }
+  }, [user, clerkUser]);
 
   if (loading) {
     return (
