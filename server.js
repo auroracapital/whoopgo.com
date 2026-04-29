@@ -294,7 +294,9 @@ async function provisionEsim(sessionId, order) {
   try {
     console.log(`Provisioning via esimmcp: ${sessionId}`);
 
+    const esimProvisionStartedAt = Date.now();
     const qrData = await callEsimmcpApi(order);
+    const latencyMs = Date.now() - esimProvisionStartedAt;
 
     orders.set(sessionId, {
       ...order,
@@ -312,6 +314,7 @@ async function provisionEsim(sessionId, order) {
       {
         order_id: sessionId,
         provider: "esimmcp",
+        latency_ms: latencyMs,
         plan_id: order.planId,
         plan_name: order.planName,
         country: order.country,
