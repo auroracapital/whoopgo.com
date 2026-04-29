@@ -642,7 +642,7 @@ function PricingSection() {
                     ))}
                   </ul>
                   {plan.popular ? (
-                    <div onClick={() => events.planSelected(plan.id, plan.name, Math.round(plan.price * 100))}>
+                    <div onClickCapture={() => events.planSelected(plan.id, plan.name, Math.round(plan.price * 100))}>
                       <CheckoutButton
                         plan={{ id: plan.id, name: plan.name, data: plan.data, duration: `${plan.days} days`, price: Math.round(plan.price * 100), description: plan.features[0] }}
                         userId={user?.id}
@@ -655,7 +655,7 @@ function PricingSection() {
                     <motion.div
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => events.planSelected(plan.id, plan.name, Math.round(plan.price * 100))}
+                      onClickCapture={() => events.planSelected(plan.id, plan.name, Math.round(plan.price * 100))}
                     >
                       <CheckoutButton
                         plan={{ id: plan.id, name: plan.name, data: plan.data, duration: `${plan.days} days`, price: Math.round(plan.price * 100), description: plan.features[0] }}
