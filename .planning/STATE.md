@@ -1,22 +1,15 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.1
-milestone_name: "Trust, Conversion & Traffic"
+milestone_name: Trust, Conversion & Traffic
 status: executing
-last_updated: "2026-04-26T08:30:00.000Z"
-last_activity: "v1.1 unified 2026-04-26 — merged Trust & Consolidation (orig 6-12) + Conversion/Traffic/Trust (PR 6-11) into 13 phases (6-18)"
+last_updated: "2026-04-29T00:00:00.000Z"
+stopped_at: "Completed phase-06-plan-1: Funnel Analytics & Baseline Dashboard"
 progress:
   total_phases: 13
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 1
-  completed_plans: 0
-shipped_milestones:
-  - version: v1.0
-    name: Launch-Ready eSIM Storefront
-    shipped: 2026-04-16
-  - version: v1.0-addendum
-    name: Domain, SSO wiring, legal scaffolding, provider consolidation
-    shipped: 2026-04-24
+  completed_plans: 1
 ---
 
 # Project State
@@ -24,6 +17,7 @@ shipped_milestones:
 ## Current Milestone: v1.1 Trust, Conversion & Traffic
 
 Unified milestone (2026-04-26) merging two earlier drafts:
+
 - Original v1.1 "Post-Launch Trust & Consolidation" (PR #21, phases 6-12) — Clerk webhook, E2E SSO, legal review, native wallet checkout, Resend email, FB Live, admin console.
 - v1.1 "Conversion, Traffic & Trust" (PR #27, phases 6-11) — funnel analytics, country SEO, AI Finder v2, trust/social proof, mobile app, paid acquisition.
 
@@ -42,7 +36,7 @@ Both threads now live as 13 phases (6-18). Phase 6 (Funnel Analytics) PLAN.md co
 - **AI chat**: Gemini 3.1 Flash-Lite via `/api/chat` (Phase 8 upgrades to closer mode).
 - **Payments**: Stripe Checkout (native wallets added in Phase 15).
 - **Email**: Cloudflare routing inbound; Resend outbound in Phase 16.
-- **Analytics**: GA4 + PostHog via Phase 6.
+- **Analytics**: GA4 + PostHog — Phase 6 SHIPPED. Full 10-event funnel (client + server), EU data residency, `/admin/metrics` dashboard with Clerk JWT-gated orders API.
 
 ## Blockers
 
@@ -50,6 +44,7 @@ _None blocking Phase 6 (PLAN.md ready). Open questions for Sam in ROADMAP.md mus
 
 ## Recent Decisions
 
+- 2026-04-29: Phase 6 complete — posthog-node as plain ESM .js (not .ts) to match server.js; @clerk/backend verifyToken for /api/admin/orders (never leaks ADMIN_API_TOKEN to browser); ip: false in PostHog init for GDPR; EU host default.
 - 2026-04-26: Unified v1.1 milestone — merged "Trust & Consolidation" + "Conversion, Traffic & Trust" drafts into one 13-phase milestone (6-18). Renumbered original Trust phases to 12-18, kept PR's growth phases at 6-11. Original "Admin Dashboard" deduped against Phase 6's `/admin/metrics` and broadened to "Admin Console — Orders + Users + Email Events" at Phase 18.
 - 2026-04-24: v1.1 milestone kicked off (initial Conversion-only framing, since superseded).
 - v1.0 addendum file codifies out-of-band work without rewriting v1.0 scope.
