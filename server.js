@@ -449,10 +449,9 @@ app.get("/api/admin/orders", async (req, res) => {
 
   let userId;
   try {
-    const { data: jwtPayload, errors } = await verifyToken(token, {
+    const jwtPayload = await verifyToken(token, {
       secretKey: process.env.CLERK_SECRET_KEY,
     });
-    if (errors?.length) throw errors[0];
     userId = jwtPayload?.sub;
     if (!userId) return res.status(401).json({ error: "Invalid token" });
   } catch {
