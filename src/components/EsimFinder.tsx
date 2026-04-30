@@ -22,9 +22,13 @@ const INITIAL_MESSAGE: Message = {
 };
 
 // Detect plan recommendations in AI responses.
-// Looks for patterns like "Tourist Plan", "Traveler Plan", "Explorer Plan" or
-// plan-id style strings (e.g. eu-10gb-15d) followed by a price.
-const PLAN_REGEX =
+// The AI system prompt describes plans by data + duration + price (e.g.
+// "3GB / 15 days / $9.99"), so match either:
+//  (a) numeric format: <data>GB / <days>d / $<price>  →  plan_id derived from match
+//  (b) named tier:    "<tier> plan"                   →  plan_id from tier name
+const NUMERIC_PLAN_REGEX =
+  /(\d+(?:\.\d+)?)\s*GB[^.]{0,40}?(\d+)\s*(?:d|days?)[^.]{0,40}?\$(\d+(?:\.\d+)?)/i;
+const NAMED_PLAN_REGEX =
   /\b(tourist|traveler|explorer|europe|global|asia|unlimited)[^.]*plan\b.*?\$(\d+(?:\.\d+)?)/i;
 
 export function EsimFinder() {
@@ -45,16 +49,19 @@ export function EsimFinder() {
     scrollToBottom();
   }, [messages, isTyping]);
 
-  // Fire finder_opened once on mount
-  useEffect(() => {
+  // Fire finder_opened once when the user actually engages with the finder.
+  // Mount-time firing is redundant with $pageview because the finder is
+  // always visible on the landing page.
+  const fireFinderOpenedOnce = () => {
     if (!firedOpenRef.current) {
       firedOpenRef.current = true;
       events.finderOpened();
     }
-  }, []);
+  };
 
   const handleSend = async () => {
     if (!input.trim() || isTyping) return;
+    fireFinderOpenedOnce();
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -99,19 +106,35 @@ export function EsimFinder() {
       };
       setMessages((prev) => [...prev, aiMessage]);
 
-      // Fire plan_recommended if AI response contains a plan suggestion
-      const planMatch = PLAN_REGEX.exec(content);
-      if (planMatch) {
-        const planName =
-          planMatch[1].charAt(0).toUpperCase() + planMatch[1].slice(1).toLowerCase();
-        const price = parseFloat(planMatch[2]);
+      // Fire plan_recommended if AI response contains a plan suggestion.
+      // Try the numeric "<X>GB / <Y>d / $<Z>" pattern first since the AI is
+      // configured to surface plans that way, then fall back to the named
+      // tier pattern for "Tourist/Traveler/Explorer plan" responses.
+      let planId: string | null = null;
+      let planName = "";
+      let price = 0;
+      const numericMatch = NUMERIC_PLAN_REGEX.exec(content);
+      const namedMatch = !numericMatch ? NAMED_PLAN_REGEX.exec(content) : null;
+      if (numericMatch) {
+        const data = numericMatch[1];
+        const days = numericMatch[2];
+        price = parseFloat(numericMatch[3]);
+        planId = `gb${data}-d${days}`;
+        planName = `${data}GB / ${days}d`;
+      } else if (namedMatch) {
+        planName =
+          namedMatch[1].charAt(0).toUpperCase() + namedMatch[1].slice(1).toLowerCase();
+        price = parseFloat(namedMatch[2]);
+        planId = `${planName.toLowerCase()}-recommended`;
+      }
+      if (planId) {
         const allText = updatedMessages.map((m) => m.content).join(" ");
         const countryMatch =
           /\b(japan|europe|usa|us|uk|france|germany|italy|spain|asia|australia|canada|mexico|brazil|thailand|india)\b/i.exec(
             allText,
           );
         const country = countryMatch ? countryMatch[1].toUpperCase() : "unknown";
-        events.planRecommended(`${planName.toLowerCase()}-recommended`, planName, country, price);
+        events.planRecommended(planId, planName, country, price);
       }
     } catch {
       const errorMessage: Message = {
@@ -242,6 +265,7 @@ export function EsimFinder() {
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
+                    onFocus={fireFinderOpenedOnce}
                     onKeyDown={handleKeyDown}
                     placeholder="Tell me about your trip..."
                     className="flex-1 bg-background border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#E67E3C]/50 transition-all"
