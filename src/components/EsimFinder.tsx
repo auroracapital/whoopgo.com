@@ -134,7 +134,7 @@ export function EsimFinder() {
             allText,
           );
         const country = countryMatch ? countryMatch[1].toUpperCase() : "unknown";
-        events.planRecommended(planId, planName, country, price);
+        events.planRecommended(planId, planName, country, Math.round(price * 100));
       }
     } catch {
       const errorMessage: Message = {
