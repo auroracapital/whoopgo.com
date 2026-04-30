@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { BarChart2, ShoppingBag, DollarSign, ArrowLeft, TrendingUp } from "lucide-react";
 import { useAuth } from "@clerk/clerk-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +26,7 @@ const POSTHOG_HOST = (import.meta.env.VITE_POSTHOG_HOST as string | undefined) ?
 
 export function AdminMetrics() {
   const { userId, getToken, isLoaded, isSignedIn } = useAuth();
+  const navigate = useNavigate();
   const [data, setData] = useState<AdminOrdersResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,13 +34,18 @@ export function AdminMetrics() {
   useEffect(() => {
     if (!isLoaded) return;
     if (!isSignedIn) {
-      window.location.href = "/account";
+      navigate("/account");
       return;
     }
 
     void (async () => {
       try {
         const token = await getToken();
+        if (!token) {
+          setError("Could not get auth token. Please sign in again.");
+          setLoading(false);
+          return;
+        }
         const res = await fetch("/api/admin/orders", {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -56,7 +63,7 @@ export function AdminMetrics() {
         setLoading(false);
       }
     })();
-  }, [isLoaded, isSignedIn, userId, getToken]);
+  }, [isLoaded, isSignedIn, userId, getToken, navigate]);
 
   if (!isLoaded || loading) {
     return (
@@ -89,7 +96,7 @@ export function AdminMetrics() {
         {/* Header */}
         <div className="flex items-center gap-4 mb-10">
           <button
-            onClick={() => (window.location.href = "/")}
+            onClick={() => navigate("/")}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -164,7 +171,7 @@ export function AdminMetrics() {
               </CardHeader>
               <CardContent className="p-0">
                 <iframe
-                  src={`${POSTHOG_HOST}/embedded/${POSTHOG_DASHBOARD_ID}?embedded=true`}
+                  src={`${POSTHOG_HOST}/embedded/${POSTHOG_DASHBOARD_ID}`}
                   title="PostHog funnel dashboard"
                   className="w-full border-0"
                   style={{ height: 600 }}

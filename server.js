@@ -8,7 +8,7 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { createClerkWebhookHandler } from "./src/server/clerk-webhook.js";
 import { sendOrderReceipt } from "./src/server/email.js";
 import { captureServerEvent } from "./src/lib/posthog-node.js";
-import { createClerkClient } from "@clerk/backend";
+import { createClerkClient, verifyToken } from "@clerk/backend";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -294,7 +294,9 @@ async function provisionEsim(sessionId, order) {
   try {
     console.log(`Provisioning via esimmcp: ${sessionId}`);
 
+    const esimProvisionStartedAt = Date.now();
     const qrData = await callEsimmcpApi(order);
+    const latencyMs = Date.now() - esimProvisionStartedAt;
 
     orders.set(sessionId, {
       ...order,
@@ -312,6 +314,7 @@ async function provisionEsim(sessionId, order) {
       {
         order_id: sessionId,
         provider: "esimmcp",
+        latency_ms: latencyMs,
         plan_id: order.planId,
         plan_name: order.planName,
         country: order.country,
@@ -446,8 +449,11 @@ app.get("/api/admin/orders", async (req, res) => {
 
   let userId;
   try {
-    const payload = await clerkClient.verifyToken(token);
-    userId = payload.sub;
+    const jwtPayload = await verifyToken(token, {
+      secretKey: process.env.CLERK_SECRET_KEY,
+    });
+    userId = jwtPayload?.sub;
+    if (!userId) return res.status(401).json({ error: "Invalid token" });
   } catch {
     return res.status(401).json({ error: "Invalid token" });
   }
