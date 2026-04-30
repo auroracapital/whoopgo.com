@@ -34,7 +34,7 @@ export function AdminMetrics() {
   useEffect(() => {
     if (!isLoaded) return;
     if (!isSignedIn) {
-      navigate("/account");
+      void navigate("/account");
       return;
     }
 
@@ -96,7 +96,9 @@ export function AdminMetrics() {
         {/* Header */}
         <div className="flex items-center gap-4 mb-10">
           <button
-            onClick={() => navigate("/")}
+            onClick={() => {
+              void navigate("/");
+            }}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
